@@ -29,7 +29,7 @@ Native GitHub CLI (`gh pr comment`) only supports general PR comments, not inlin
 **Reply using comment URL** (most common - extracts thread ID automatically):
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/pr-thread-reply/reply-pr-thread.sh \
-  "https://github.com/DataDog/logs-backend/pull/123517#discussion_r2721565974" \
+  "https://github.com/tal/repo/pull/123517#discussion_r2721565974" \
   "Thanks, fixed in the latest commit!"
 ```
 
@@ -60,7 +60,7 @@ reply-pr-thread.sh "<comment-url>" "<reply-message>"
 Example:
 ```bash
 reply-pr-thread.sh \
-  "https://github.com/DataDog/logs-backend/pull/123517#discussion_r2721565974" \
+  "https://github.com/tal/repo/pull/123517#discussion_r2721565974" \
   "Good catch! I've updated the error handling."
 ```
 
@@ -79,7 +79,7 @@ Example:
 reply-pr-thread.sh \
   --comment-id 456789 \
   --pr 12345 \
-  --repo DataDog/logs-backend \
+  --repo tal/repo \
   "Fixed as suggested, thanks!"
 ```
 
@@ -132,7 +132,7 @@ When you've addressed a reviewer's inline comment:
 2. Reply with what you changed:
 ```bash
 reply-pr-thread.sh \
-  "https://github.com/DataDog/repo/pull/123#discussion_r456" \
+  "https://github.com/tal/repo/pull/123#discussion_r456" \
   "Fixed in commit abc123 - now using error wrapping as suggested"
 ```
 
@@ -141,7 +141,7 @@ reply-pr-thread.sh \
 Quick acknowledgment of a comment:
 ```bash
 reply-pr-thread.sh \
-  "https://github.com/DataDog/repo/pull/123#discussion_r456" \
+  "https://github.com/tal/repo/pull/123#discussion_r456" \
   "Good point, will address this in a follow-up PR"
 ```
 
@@ -157,7 +157,7 @@ After addressing multiple review comments:
 When a comment starts a technical discussion:
 ```bash
 reply-pr-thread.sh \
-  "https://github.com/DataDog/repo/pull/123#discussion_r456" \
+  "https://github.com/tal/repo/pull/123#discussion_r456" \
   "I considered that approach but went with X because Y. Happy to discuss alternatives if you have concerns."
 ```
 

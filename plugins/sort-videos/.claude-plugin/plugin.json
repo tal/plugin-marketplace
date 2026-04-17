@@ -1,0 +1,13 @@
+{
+  "name": "sort-videos",
+  "description": "Find, transcribe, and sort downloaded videos from ~/Downloads into topic folders in AI Library. Includes OCR extraction for on-screen text in recipe and product videos.",
+  "version": "0.1.0",
+  "keywords": [
+    "video",
+    "transcribe",
+    "sort",
+    "ocr",
+    "whisper",
+    "yt-dlp"
+  ]
+}

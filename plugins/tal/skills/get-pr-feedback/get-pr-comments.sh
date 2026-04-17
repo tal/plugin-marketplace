@@ -6,8 +6,8 @@
 # Example: ./get-pr-comments.sh -a 12345      # Actionable only (compact by default, newest first)
 # Example: ./get-pr-comments.sh -af 12345     # Actionable + full mode with diff_hunks
 # Example: ./get-pr-comments.sh -ao 12345     # Actionable + oldest first
-# Example: ./get-pr-comments.sh https://github.com/DataDog/logs-backend/pull/113726
-# Example: ./get-pr-comments.sh https://github.com/DataDog/logs-backend/pull/113726#discussion_r2406356483
+# Example: ./get-pr-comments.sh https://github.com/tal/repo/pull/113726
+# Example: ./get-pr-comments.sh https://github.com/tal/repo/pull/113726#discussion_r2406356483
 # If no PR number provided, attempts to use current branch's PR
 #
 # Flags:
@@ -128,7 +128,7 @@ if [ -z "$1" ]; then
     exit 0
   fi
   PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')
-  # Extract repo from URL (e.g., https://github.com/DataDog/logs-backend/pull/113726)
+  # Extract repo from URL (e.g., https://github.com/tal/repo/pull/113726)
   REPO=$(echo "$PR_INFO" | jq -r '.url' | sed -E 's|https://github.com/([^/]+/[^/]+)/pull/.*|\1|')
   log_verbose "Detected PR #$PR_NUMBER in repository $REPO"
 else

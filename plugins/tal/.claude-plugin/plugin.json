@@ -1,8 +1,8 @@
 {
     "name": "tal",
-    "description": "Datadog's common plugin for git workflows, PR feedback, and CI troubleshooting. Includes commands for atomic commits, PR feedback management, and CI failure analysis.",
+    "description": "Common plugin for git workflows, PR feedback, and CI troubleshooting. Includes commands for atomic commits, PR feedback management, and CI failure analysis.",
     "author": {
         "name": "AI DevX Team",
-        "email": "team-aidevx@datadoghq.com"
+        "email": "me@tal.by"
     }
 }

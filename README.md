@@ -12,7 +12,7 @@ Add this marketplace to your `~/.claude/settings.json`:
     "tal-marketplace": {
       "source": {
         "source": "github",
-        "repo": "DataDog/tal-marketplace"
+        "repo": "tal/claude-marketplace"
       }
     }
   }

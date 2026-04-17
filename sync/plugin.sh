@@ -23,9 +23,9 @@ The script will:
   - register the plugin in this marketplace's catalog if not already present
 
 Examples:
-  $0 dd tal                                # sync dd as tal from default marketplace
-  $0 dd                                    # keeps the name 'dd'
-  $0 dd tal /path/to/other/marketplace     # use a different source
+  $0 source-name tal                                # sync source-name as tal from default marketplace
+  $0 source-name                                    # keeps the original name
+  $0 source-name tal /path/to/other/marketplace     # use a different source
 EOF
   exit 1
 }

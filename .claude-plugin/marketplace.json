@@ -2,7 +2,7 @@
   "name": "tal-marketplace",
   "owner": {
     "name": "Tal Atlas",
-    "email": "tal.atlas@datadoghq.com"
+    "email": "me@tal.by"
   },
   "metadata": {
     "description": "Tal's personal Claude Code plugin marketplace"
@@ -22,6 +22,16 @@
       "name": "plan-refiner",
       "source": "./plugins/plan-refiner",
       "description": "Refine plans and specs through in-depth interviews using strategic questioning"
+    },
+    {
+      "name": "karabiner",
+      "source": "./plugins/karabiner",
+      "description": "Skills for configuring and writing Karabiner-Elements rules on macOS"
+    },
+    {
+      "name": "sort-videos",
+      "source": "./plugins/sort-videos",
+      "description": "Find, transcribe, and sort downloaded videos into topic folders with OCR extraction"
     }
   ]
 }

@@ -51,10 +51,10 @@ Input Formats:
 
 Examples:
   # Reply using comment URL
-  reply-pr-thread.sh "https://github.com/DataDog/logs-backend/pull/123#discussion_r456" "Fixed!"
+  reply-pr-thread.sh "https://github.com/tal/repo/pull/123#discussion_r456" "Fixed!"
 
   # Reply using comment ID
-  reply-pr-thread.sh --comment-id 456789 --pr 123 --repo DataDog/repo "Thanks!"
+  reply-pr-thread.sh --comment-id 456789 --pr 123 --repo tal/repo "Thanks!"
 
   # Interactive mode
   reply-pr-thread.sh
