@@ -1,6 +1,6 @@
 ---
 name: sort-videos
-description: Find, transcribe, and sort downloaded videos from Downloads into topic folders in AI Library. Pass a file path to reprocess a specific video (e.g., /sort-videos path/to/video.mp4).
+description: This skill should be invoked when the user runs `/sort-videos` (with or without a path argument) or asks to "sort my downloaded videos", "transcribe and categorize videos", "organize my AI Library", or "reprocess a video". Finds yt-dlp downloads in `~/Downloads`, transcribes them with whisper-cpp, optionally runs OCR on frames, enriches from Instagram oEmbed captions, renames, moves them into topic folders under `~/Downloads/AI Library/`, and writes a companion `.md` summary. Pass a file path or glob to reprocess a specific video.
 user-invocable: true
 allowed-tools:
   - Read

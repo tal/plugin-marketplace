@@ -19,7 +19,7 @@ No extensions required - uses native `gh api` commands.
 
 Native GitHub CLI (`gh pr comment`) only supports general PR comments, not inline review comments. This skill uses the GitHub REST API via `gh api` to reply to specific inline review threads with proper threading support.
 
-**Use this instead of**:
+**Prefer this over**:
 - `gh pr comment` (doesn't support inline comment replies)
 - Manual `gh api` calls (this skill handles URL parsing and error handling)
 - Manual web browsing (not automatable)
@@ -49,10 +49,10 @@ ${CLAUDE_PLUGIN_ROOT}/skills/pr-thread-reply/reply-pr-thread.sh
 
 ## Usage
 
-The skill accepts multiple input formats for flexibility:
+Multiple input formats accepted for flexibility:
 
 ### Option 1: Comment URL (Recommended)
-Provide the full GitHub PR comment URL and your reply message:
+Provide the full GitHub PR comment URL and the reply message:
 ```bash
 reply-pr-thread.sh "<comment-url>" "<reply-message>"
 ```
@@ -98,7 +98,7 @@ reply-pr-thread.sh
 
 ## Getting Comment IDs
 
-Comment IDs are extracted automatically from comment URLs, but you can also obtain them:
+Comment IDs are extracted automatically from comment URLs, but they can also be obtained manually:
 
 **From the URL**:
 The comment ID is the numeric part after `#discussion_r` in the URL:
@@ -111,7 +111,7 @@ https://github.com/owner/repo/pull/123#discussion_r456789
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/get-pr-feedback/get-pr-comments.sh -a
 ```
-This will show comment URLs which contain the comment IDs.
+The output lists comment URLs which contain the comment IDs.
 
 ## Output
 
@@ -127,9 +127,9 @@ On error, diagnostic information is printed to stderr.
 
 ### 1. Reply to Specific Comment After Code Changes
 
-When you've addressed a reviewer's inline comment:
-1. Get the comment URL from GitHub or the user
-2. Reply with what you changed:
+After addressing a reviewer's inline comment:
+1. Get the comment URL from GitHub or from the user
+2. Reply with what changed:
 ```bash
 reply-pr-thread.sh \
   "https://github.com/tal/repo/pull/123#discussion_r456" \
@@ -183,15 +183,15 @@ ${CLAUDE_PLUGIN_ROOT}/skills/pr-thread-reply/reply-pr-thread.sh \
 ```
 Error: gh is not authenticated
 ```
-Run `gh auth login` to authenticate
+Run `gh auth login` to authenticate.
 
 **Comment not found:**
 ```
 Error: Comment not found or you don't have access
 ```
 - Verify the comment ID is correct
-- Check you have write access to the repository
-- Note: You can only reply to top-level review comments, not replies to replies
+- Confirm write access to the repository
+- Note: Only top-level review comments accept replies — replies to replies are not supported
 
 **Comment URL not recognized:**
 The URL must contain `#discussion_r` followed by a number. Example:

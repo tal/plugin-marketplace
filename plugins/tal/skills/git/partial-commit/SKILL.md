@@ -1,46 +1,38 @@
 ---
 name: git-partial-commit
-description: Stage and commit specific lines or hunks from a file without staging the entire file. Use when you need to create focused commits from files with multiple unrelated changes.
+description: This skill should be used when the user asks to "stage specific lines", "partial commit", "stage one hunk", "commit part of a file", "split changes into multiple commits", "stage only some changes", "create atomic commits from mixed changes", or needs to commit a subset of the changes in a file without staging the whole file. Uses `git apply --cached` with a user-supplied unified diff patch to stage exact lines or hunks.
 ---
 
 # Git Partial Commit
 
-This skill helps stage and commit specific lines or hunks from a file without staging the entire file. It's useful for creating atomic, focused commits when a file contains multiple unrelated changes.
-
-## When to Use This Skill
-
-Use this skill when you need to:
-- Commit only specific lines from a file that has multiple changes
-- Create atomic commits from files with mixed changes
-- Stage specific hunks without staging the entire file
-- Separate unrelated changes in the same file into different commits
+Stage and commit specific lines or hunks from a file without staging the entire file. Useful for creating atomic, focused commits when a file contains multiple unrelated changes.
 
 ## How It Works
 
-The skill uses git's patch mechanism to stage specific lines:
+Use git's patch mechanism to stage specific lines:
 
 1. Generate a unified diff showing the changes in a file
-2. Extract specific hunks or lines you want to stage
+2. Extract the specific hunks or lines to stage
 3. Apply those changes to the staging area using `git apply --cached`
 
 ## Usage
 
 ### Using the Helper Script
 
-Use the included helper script to stage specific lines from a file:
+Invoke the included helper script to stage specific lines from a file:
 
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/git/partial-commit/stage-lines.sh <file> <patch>
 ```
 
 **Parameters:**
-- `file`: Path to the file (can be relative or absolute)
+- `file`: Path to the file (relative or absolute)
 - `patch`: A unified diff patch string containing the changes to stage
 
-The script will:
-1. Validate that the file exists and has changes
-2. Apply the provided patch to the staging area
-3. Return success/failure status
+The script:
+1. Validates that the file exists and has changes
+2. Applies the provided patch to the staging area
+3. Returns success/failure status
 
 ### Workflow for Partial Commits
 
@@ -48,9 +40,9 @@ The script will:
    ```bash
    git diff --unified=<N> <file>
    ```
-   Where `<N>` is the number of context lines (default is 3, use larger numbers for more context)
+   Where `<N>` is the number of context lines (default is 3; use larger numbers for more context)
 
-2. **Construct a patch for the lines you want to stage:**
+2. **Construct a patch for the lines to stage:**
    A patch follows the unified diff format:
    ```
    diff --git a/foo.txt b/foo.txt
@@ -113,9 +105,9 @@ Each hunk starts with a hunk header and contains the changes:
    git diff --unified=5 file.txt
    ```
 
-2. **Extract the hunks you want:**
+2. **Extract the desired hunks:**
    - Copy the header section (diff --git, index, ---, +++)
-   - Copy only the hunks (`@@ ... @@`) you want to stage
+   - Copy only the hunks (`@@ ... @@`) to stage
    - Include enough context lines for git to locate the changes
 
 3. **Keep proper patch format:**
@@ -127,7 +119,7 @@ Each hunk starts with a hunk header and contains the changes:
 
 ### Example 1: Stage a single added line
 
-File has multiple changes, but you only want to stage one:
+File has multiple changes, but only one should be staged:
 
 ```bash
 # View the changes
@@ -198,13 +190,13 @@ When the script fails:
 - Check the error message for details
 - Verify the file path is correct
 - Ensure the patch matches the current file state
-- Check that the patch format is valid unified diff
+- Confirm the patch format is valid unified diff
 
 ## Notes
 
 - The file must have unstaged changes for the skill to work
 - Patches are applied to the staging area only (`--cached` flag)
 - The working directory file remains unchanged
-- You can stage multiple patches to the same file before committing
-- Use `git diff --cached` to see what's currently staged
-- Use `git reset HEAD <file>` to unstage if needed
+- Multiple patches may be staged to the same file before committing
+- Run `git diff --cached` to see what's currently staged
+- Run `git reset HEAD <file>` to unstage if needed

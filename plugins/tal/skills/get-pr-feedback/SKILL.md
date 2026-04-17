@@ -16,7 +16,7 @@ Fetch PR review comments from GitHub as structured threads with conversation con
 
 ## Why Use This Skill
 
-This skill provides structured access to PR review comment threads with accurate resolution and outdated status that's not easily available through basic `gh pr view` commands. It:
+Provides structured access to PR review comment threads with accurate resolution and outdated status that is not easily available through basic `gh pr view` commands. It:
 
 - Fetches ALL review comment threads with full conversation context
 - Tracks resolved/outdated status (requires GraphQL API)
@@ -24,7 +24,7 @@ This skill provides structured access to PR review comment threads with accurate
 - Returns structured JSON for programmatic filtering
 - Auto-detects PR from current branch or accepts explicit PR/comment URLs
 
-**Use this instead of**:
+**Prefer this over**:
 - `gh pr view --comments` (doesn't show threaded conversations or resolution status)
 - `gh api` calls (requires manual GraphQL query construction)
 - Manual web browsing (not automatable)
@@ -65,18 +65,18 @@ ${CLAUDE_PLUGIN_ROOT}/skills/get-pr-feedback/get-pr-comments.sh | \
 
 ## Usage
 
-The skill accepts the following input formats:
+Input formats accepted:
 
 - **No argument**: Auto-detects PR from the current git branch
 - **PR number**: Fetches comments for a specific PR number (e.g., `12345`)
-- **PR URL**: Accepts full GitHub PR URL (e.g., `https://github.com/owner/repo/pull/123`)
+- **PR URL**: Full GitHub PR URL (e.g., `https://github.com/owner/repo/pull/123`)
 - **Comment URL**: Fetches only the thread containing a specific comment (e.g., `https://github.com/owner/repo/pull/123#discussion_r123456`)
 
 **Flags:**
 - **-v**: Enables verbose mode for diagnostic output to stderr
 - **-a**: Filters to actionable threads only (unresolved AND not outdated). Recommended for large PRs
-- **-f**: Full mode - includes diff_hunk fields (70% larger output). By default, diff_hunks are excluded since Claude can read files directly
-- **-o**: Oldest-first chronological order (default is newest first for most relevant feedback)
+- **-f**: Full mode — includes diff_hunk fields (70% larger output). diff_hunks are excluded by default since the file contents are readable directly
+- **-o**: Oldest-first chronological order (default is newest-first for most relevant feedback)
 
 ## Output Structure
 
@@ -122,8 +122,8 @@ Returns an **array of review threads** (sorted newest first by default, use -o f
 
 ### 1. Address All Unresolved PR Feedback
 
-When a user asks "address the PR feedback":
-1. Fetch actionable threads: Use `-a` flag to get only unresolved, non-outdated threads
+When the user asks "address the PR feedback":
+1. Fetch actionable threads: pass `-a` to get only unresolved, non-outdated threads
 2. For each thread, read the referenced file at the specified `path` and `line`
 3. Make necessary changes to address the comment
 4. Push changes and reply to the comment thread
@@ -132,7 +132,7 @@ When a user asks "address the PR feedback":
 
 ### 2. Understand Reviewer Concerns
 
-When a user asks "what did reviewers say about X":
+When the user asks "what did reviewers say about X":
 1. Fetch review threads
 2. Filter by file path or search comment bodies for keywords
 3. Summarize the concerns and suggestions
@@ -142,13 +142,13 @@ When a user asks "what did reviewers say about X":
 
 When returning to a PR after time away:
 1. Fetch actionable threads with `-a` to see what needs attention
-2. Threads are sorted newest first, so most recent feedback appears at the top
+2. Threads are sorted newest first, so the most recent feedback appears at the top
 3. Review the full conversation in each thread (original comment + replies)
 4. Address comments starting with the most recent ones
 
 ### 4. Analyze Specific Comment Thread
 
-When a user provides a comment URL like `https://github.com/org/repo/pull/123#discussion_r456`:
+When the user provides a comment URL like `https://github.com/org/repo/pull/123#discussion_r456`:
 1. Fetch only that specific thread
 2. Read the full conversation context
 3. Understand what was already discussed
@@ -182,17 +182,17 @@ ${CLAUDE_PLUGIN_ROOT}/skills/get-pr-feedback/get-pr-comments.sh -a | \
 ### Performance Optimization
 
 For large PRs with many comments:
-- Use `-a` to filter actionable threads (reduces output size)
+- Pass `-a` to filter actionable threads (reduces output size)
 - Compact mode is default (no diff_hunks), keeping output small
-- Add `-f` only if you need inline code context (increases output by 70%)
+- Add `-f` only when inline code context is needed (increases output by 70%)
 - **Automatic fallback**: If output exceeds 25KB, the script writes to a temp file automatically
-  - You'll see: `[get-pr-comments] Large output detected - wrote to temp file for Claude to read: /tmp/pr-comments-{owner}-{repo}-{pr}.json`
-  - Use the Read tool on this path to access the full data without truncation
+  - Look for: `[get-pr-comments] Large output detected - wrote to temp file for Claude to read: /tmp/pr-comments-{owner}-{repo}-{pr}.json`
+  - Read this path with the Read tool to access the full data without truncation
   - This bypasses the Bash tool's 30KB limit entirely
 
 ## Troubleshooting
 
-**Enable verbose mode** (`-v` flag) to see diagnostic output on stderr:
+**Enable verbose mode** (`-v` flag) for diagnostic output on stderr:
 - Which PR and repository are queried
 - Argument parsing details
 - Total threads/comments retrieved
@@ -214,8 +214,8 @@ For large PRs with many comments:
 - Returns empty array `[]` on error with messages to stderr
 - **Automatic large output handling**:
   - When output exceeds 25KB, the script automatically writes to a temp file at `/tmp/pr-comments-{owner}-{repo}-{pr}.json`
-  - You'll see a message on stderr: `[get-pr-comments] Large output detected - wrote to temp file for Claude to read: {path}`
-  - **Important for skills**: When you see this message, use the Read tool on the temp file path instead of parsing stdout
+  - A message appears on stderr: `[get-pr-comments] Large output detected - wrote to temp file for Claude to read: {path}`
+  - **Important for skills**: When this message appears, read the temp file path with the Read tool instead of parsing stdout
   - This bypasses the Bash tool's 30KB output limit and allows full data access
 - Default behavior optimized for performance:
   - Compact mode (no diff_hunks) reduces output size by 70%

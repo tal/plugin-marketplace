@@ -1,13 +1,13 @@
 ---
 name: karabiner-js-modifications
 description: >
-  Write Karabiner-Elements complex modification rules using JavaScript instead of raw JSON.
-  Use this skill when the user mentions Karabiner-Elements, karabiner rules, key remapping on macOS,
-  complex modifications, keyboard shortcuts with Karabiner, writing Karabiner JS rules,
-  or wants to create/edit/debug Karabiner configuration. Also trigger when the user references
-  their karabiner.json, mentions key_code mappings, modifier remapping, or app-specific hotkeys
-  on macOS. Even if they don't say "Karabiner" explicitly, if they're talking about remapping
-  keys or creating keyboard shortcuts on macOS beyond what System Settings offers, this skill applies.
+  This skill should be used when the user asks to "write Karabiner rules", "create a karabiner
+  complex modification", "remap keys on macOS", "edit karabiner.json", "set up keyboard shortcuts
+  with Karabiner", "debug a Karabiner rule", or mentions Karabiner-Elements, key_code mappings,
+  modifier remapping, or app-specific hotkeys on macOS. Also triggers on any request to remap
+  keys or create keyboard shortcuts on macOS beyond what System Settings offers. Guides writing
+  Karabiner-Elements complex modification rules in JavaScript (Duktape ES5.1) that generate JSON,
+  instead of hand-authoring deeply nested JSON.
 ---
 
 # Karabiner-Elements: JavaScript Complex Modifications
@@ -16,17 +16,17 @@ Since v15.9.6, Karabiner-Elements lets you write complex modification rules in J
 
 ## When to use JS vs raw JSON
 
-JS shines when rules have repetitive structure -- cycling through modes, generating per-app overrides, mapping ranges of keys. For a single simple remapping, raw JSON is fine. But once you have 3+ manipulators with similar shapes, JS pays for itself in readability and maintainability.
+JS shines when rules have repetitive structure -- cycling through modes, generating per-app overrides, mapping ranges of keys. For a single simple remapping, raw JSON is fine. But once there are 3+ manipulators with similar shapes, JS pays for itself in readability and maintainability.
 
 ## How it works
 
 1. Open Karabiner-Elements Settings > Complex Modifications
 2. Click **"Add your own rule using JavaScript"**
 3. The built-in editor opens with a sample script
-4. Your JS returns a JSON array of rules. Karabiner evaluates it and applies the result.
+4. The JS returns a JSON array of rules. Karabiner evaluates it and applies the result.
 5. Save with Cmd+S
 
-You can also use the CLI: `karabiner_cli --eval-js <path-to-js-file>`
+CLI alternative: `karabiner_cli --eval-js <path-to-js-file>`
 
 ## Duktape / ES5.1 constraints
 
@@ -83,7 +83,7 @@ In the `from.modifiers` object:
 - `mandatory`: modifiers that **must** be held (the event won't match without them)
 - `optional`: modifiers that **may** be held (won't prevent matching)
 
-Use `"optional": ["any"]` to allow the rule to fire regardless of extra modifiers being held.
+Set `"optional": ["any"]` to allow the rule to fire regardless of extra modifiers being held.
 
 Modifier names: `control`, `shift`, `option`, `command`, `caps_lock`, `fn`
 Sided variants: `left_control`, `right_control`, `left_shift`, `right_shift`, `left_option`, `right_option`, `left_command`, `right_command`
@@ -100,7 +100,7 @@ Conditions control when a manipulator is active:
 
 ### Shell commands
 
-Use `"shell_command"` in `to` to run arbitrary commands:
+Set `"shell_command"` in `to` to run arbitrary commands:
 ```javascript
 { "shell_command": "open -a 'Ghostty'" }
 ```
@@ -250,9 +250,9 @@ for (var i = 1; i <= 12; i++) {
 
 ## Debugging tips
 
-- **Use EventViewer** (in Karabiner-Elements menu bar) to see what key_codes and modifiers are being sent when you press keys. This is the single most useful debugging tool.
+- **Use EventViewer** (in Karabiner-Elements menu bar) to inspect which key_codes and modifiers are being sent on keypress. This is the single most useful debugging tool.
 - **Check the logs** at `/var/log/karabiner/` (core_service, grabber) and `~/.local/share/karabiner/log/` (console_user_server) for errors.
-- **Variables start at 0** -- if your `variable_if` conditions check for specific values but never set the variable initially, the default is `0`. Make sure you have a manipulator that matches `value: 0`.
+- **Variables start at 0** -- when `variable_if` conditions check for specific values but the variable was never set, the default is `0`. Ensure a manipulator matches `value: 0`.
 - **Rule order matters** -- manipulators are evaluated top to bottom within a rule, and rules are evaluated in the order they appear. The first match wins.
 - **`osascript` permissions** -- shell commands using `osascript` to send keystrokes need accessibility permissions. Commands like `open -a` don't have this issue.
 - **Sleep/wake issues** -- the Karabiner-Core-Service (root daemon) can get stuck after sleep/wake cycles. The in-app "Restart" only restarts user-level processes. If rules stop working, a full system reboot restarts the root daemons too.

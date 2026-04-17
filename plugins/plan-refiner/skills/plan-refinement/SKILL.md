@@ -16,12 +16,12 @@ This skill provides guidance for refining plans, specifications, and requirement
 
 **Avoid asking obvious questions** that can be inferred from context or are clearly stated in the spec.
 
-**Obvious questions (avoid these):**
+**Obvious questions (avoid):**
 - "What programming language should we use?" (when spec mentions "Python API")
 - "Should we add a submit button?" (when spec describes a form)
 - "Will this need a database?" (when spec discusses "user profiles")
 
-**Non-obvious questions (ask these):**
+**Non-obvious questions (ask):**
 - "What should happen if the API rate limit is exceeded during bulk operations?"
 - "Should form validation happen on blur, on submit, or both? What's the UX for showing errors?"
 - "For user profiles, what's the strategy for handling profile picture storage—local filesystem, S3, CDN?"
@@ -74,14 +74,14 @@ Structure questions around these areas, but present them naturally without expli
 **Pre-Interview Assessment:**
 1. Read the current spec thoroughly
 2. Identify what's clearly defined vs. ambiguous
-3. Determine if spec is already sufficiently clear
-4. If spec is clear, ask user if they want to proceed before starting interview
+3. Determine whether the spec is already sufficiently clear
+4. If the spec is clear, ask the user whether to proceed before starting the interview
 
 **Interview Flow:**
 1. Ask questions iteratively, not all at once
 2. Each round of answers informs the next round of questions
-3. Use AskUserQuestion tool with 1-4 related questions per round
-4. Continue until no more non-obvious questions remain or user says "stop"
+3. Use the AskUserQuestion tool with 1-4 related questions per round
+4. Continue until no more non-obvious questions remain or the user says "stop"
 5. Build understanding progressively through conversation
 
 **Question Crafting:**
@@ -92,11 +92,11 @@ Structure questions around these areas, but present them naturally without expli
 - Frame questions to reveal tradeoffs
 
 **Post-Interview:**
-1. Synthesize all answers into coherent refined spec
+1. Synthesize all answers into a coherent refined spec
 2. Organize information logically
 3. Include decisions made and rationale
-4. Ask user about including change summary
-5. Ask if user wants to remember summary preference for future sessions
+4. Ask the user about including a change summary
+5. Ask whether to remember the summary preference for future sessions
 
 ## Using the AskUserQuestion Tool
 
@@ -196,13 +196,13 @@ Read the input spec file completely. During analysis:
 
 ### Step 2: Pre-Interview Check
 
-If spec is already quite clear and comprehensive:
-1. Acknowledge the spec is well-defined
-2. Ask user if they want to proceed with refinement anyway
-3. If user declines, exit gracefully
-4. If user confirms, continue with interview
+If the spec is already quite clear and comprehensive:
+1. Acknowledge that the spec is well-defined
+2. Ask the user whether to proceed with refinement anyway
+3. If the user declines, exit gracefully
+4. If the user confirms, continue with the interview
 
-If spec has clear gaps or ambiguities:
+If the spec has clear gaps or ambiguities:
 1. Proceed directly to interview
 2. No need to ask for confirmation
 
@@ -234,8 +234,8 @@ If spec has clear gaps or ambiguities:
 
 Continue until:
 - No more non-obvious questions remain
-- User indicates "stop" or "done"
-- Spec is comprehensive enough to implement
+- The user indicates "stop" or "done"
+- The spec is comprehensive enough to implement
 
 ### Step 4: Synthesize and Write
 
@@ -259,15 +259,15 @@ Continue until:
 
 ### Step 5: Finalize Output
 
-**Ask user about change summary:**
+**Ask the user about the change summary:**
 
 Use AskUserQuestion to ask:
 1. "Would you like to include a summary of changes and clarifications at the top of the refined spec?"
    - Options: Yes / No
-2. "Should I remember this preference for future refinement sessions?"
+2. "Should this preference be remembered for future refinement sessions?"
    - Options: Yes (save to memory) / No (just this time)
 
-If user wants summary, include section at top:
+If the user wants a summary, include the section at the top:
 ```markdown
 ## Refinement Summary
 
@@ -322,8 +322,8 @@ If user wants summary, include section at top:
 
 **Know when to stop:**
 - Watch for diminishing returns
-- Respect user's time
-- Aim for "good enough" not perfect
+- Respect the user's time
+- Aim for "good enough" rather than perfect
 
 ### Quality Indicators
 
@@ -371,12 +371,12 @@ Working examples of refined specs:
 - Take breaks in long interviews
 
 **Don't ignore user signals:**
-- If user says "stop", stop
+- If the user says "stop", stop
 - If answers are getting terse, wrap up
-- If user seems confused, clarify question
+- If the user seems confused, clarify the question
 
 **Don't forget the goal:**
-- Goal is implementable spec, not perfect spec
+- The goal is an implementable spec, not a perfect spec
 - Practical over theoretical
 - Decisions over options
 - Clarity over comprehensiveness
@@ -384,12 +384,12 @@ Working examples of refined specs:
 ## Success Metrics
 
 A successful refinement results in:
-- User feels heard and understood
-- Spec is significantly clearer than original
+- The user feels heard and understood
+- The spec is significantly clearer than the original
 - Major ambiguities resolved
 - Key decisions documented
 - Implementation path clear
 - Edge cases considered
 - Tradeoffs acknowledged
 
-The refined spec should answer: "If I handed this to a developer, could they implement it without constantly coming back with questions?"
+The refined spec should answer: "If handed to a developer, could they implement it without constantly coming back with questions?"

@@ -72,7 +72,7 @@ altool does **not** expose:
 - In-app purchase configuration
 - App analytics or sales data
 
-For these, mint a JWT with `--generate-jwt` and hit the ASC REST API directly with curl. See **`references/rest-api-workarounds.md`** for patterns including TestFlight build queries, with the URL-encoded bracket syntax required for filter parameters.
+For these, mint a JWT with `--generate-jwt` and hit the ASC REST API directly with curl. Consult **`references/rest-api-workarounds.md`** for patterns including TestFlight build queries, along with the URL-encoded bracket syntax required for filter parameters.
 
 ### Quick Example: Query TestFlight Builds
 
