@@ -1,0 +1,38 @@
+{
+  "name": "smart-notifications",
+  "version": "0.1.0",
+  "description": "macOS desktop notifications for agent events with terminal activation support.",
+  "author": {
+    "name": "Mat Brown",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal/plugin-marketplace/tree/main/plugins/smart-notifications"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/smart-notifications",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "notifications",
+    "macos",
+    "terminal",
+    "productivity"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Smart Notifications",
+    "shortDescription": "macOS notifications that return you to the right terminal.",
+    "longDescription": "Adds context-aware desktop notifications for agent events and can reactivate the originating terminal or IDE when you click a notification.",
+    "developerName": "Mat Brown",
+    "category": "Productivity",
+    "capabilities": [
+      "Automation",
+      "Notifications"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/smart-notifications",
+    "defaultPrompt": [
+      "Install notification hooks for this workspace.",
+      "Explain how the notification click handling works.",
+      "Debug why notifications are not appearing on macOS."
+    ],
+    "brandColor": "#EA580C"
+  }
+}

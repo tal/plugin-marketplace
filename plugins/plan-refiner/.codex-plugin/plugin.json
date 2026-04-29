@@ -1,0 +1,39 @@
+{
+  "name": "plan-refiner",
+  "version": "0.1.0",
+  "description": "Refine plans and specs through in-depth interviews using strategic questioning.",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/plan-refiner",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "planning",
+    "requirements",
+    "specification",
+    "interview",
+    "refinement"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Plan Refiner",
+    "shortDescription": "Turn rough ideas into stronger plans.",
+    "longDescription": "Guides Codex through structured interviews to sharpen requirements, expose tradeoffs, and improve implementation plans before execution.",
+    "developerName": "Tal",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/plan-refiner",
+    "defaultPrompt": [
+      "Interview me to refine this product spec.",
+      "Pressure-test this implementation plan for gaps.",
+      "Turn this vague requirement into a concrete phase plan."
+    ],
+    "brandColor": "#1D4ED8"
+  }
+}

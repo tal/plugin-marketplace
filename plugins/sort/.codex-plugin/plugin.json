@@ -1,0 +1,43 @@
+{
+  "name": "sort",
+  "version": "0.1.0",
+  "description": "Sort and process files in any folder with dispatchers for videos, images, documents, archives, and installers.",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/sort",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "sort",
+    "organize",
+    "video",
+    "transcribe",
+    "ocr",
+    "whisper",
+    "downloads",
+    "documents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Sort",
+    "shortDescription": "Classify and route messy folders into an AI Library.",
+    "longDescription": "Dispatches files by type, runs the right processing pipeline, and moves results into a structured AI Library with user-overridable routing rules.",
+    "developerName": "Tal",
+    "category": "Automation",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Automation"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/sort",
+    "defaultPrompt": [
+      "Sort the files in this folder into an AI Library.",
+      "Add a routing rule for invoices and shipping labels.",
+      "Explain why this file matched the wrong sort rule."
+    ],
+    "brandColor": "#047857"
+  }
+}

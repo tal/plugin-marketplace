@@ -1,0 +1,38 @@
+{
+  "name": "karabiner",
+  "version": "0.1.0",
+  "description": "Skills for configuring and writing Karabiner-Elements rules on macOS.",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/karabiner",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "karabiner",
+    "keyboard",
+    "macos",
+    "key-remapping"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Karabiner",
+    "shortDescription": "Write and debug Karabiner-Elements rules.",
+    "longDescription": "Provides Codex skills for building and refining Karabiner-Elements complex modifications on macOS.",
+    "developerName": "Tal",
+    "category": "Utilities",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/karabiner",
+    "defaultPrompt": [
+      "Write a Karabiner complex modification for this hotkey idea.",
+      "Explain why this Karabiner rule is not matching.",
+      "Refactor this Karabiner JSON into cleaner conditions."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

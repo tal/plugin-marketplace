@@ -1,0 +1,39 @@
+{
+  "name": "tal",
+  "version": "0.1.0",
+  "description": "Common plugin for git workflows, PR feedback, and CI troubleshooting.",
+  "author": {
+    "name": "AI DevX Team",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/tal",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "git",
+    "pull-request",
+    "code-review",
+    "ci",
+    "workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Tal",
+    "shortDescription": "Git, PR, and CI workflows packaged for Codex.",
+    "longDescription": "Provides reusable workflows for commits, PR feedback, App Store Connect, and debugging common engineering tasks in a shared team style.",
+    "developerName": "AI DevX Team",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/tal",
+    "defaultPrompt": [
+      "Prepare an atomic commit from the changes in this repo.",
+      "Collect PR feedback and summarize the actions needed.",
+      "Help me debug this CI failure."
+    ],
+    "brandColor": "#7C3AED"
+  }
+}
