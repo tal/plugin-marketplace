@@ -1,6 +1,5 @@
 {
   "name": "karabiner",
-  "version": "0.1.0",
   "description": "Skills for configuring and writing Karabiner-Elements rules on macOS.",
   "author": {
     "name": "Tal",

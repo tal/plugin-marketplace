@@ -1,6 +1,5 @@
 {
   "name": "tal",
-  "version": "0.1.0",
   "description": "Common plugin for git workflows, PR feedback, and CI troubleshooting.",
   "author": {
     "name": "AI DevX Team",

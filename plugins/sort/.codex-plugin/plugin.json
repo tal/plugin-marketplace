@@ -1,6 +1,5 @@
 {
   "name": "sort",
-  "version": "0.1.0",
   "description": "Sort and process files in any folder with dispatchers for videos, images, documents, archives, and installers.",
   "author": {
     "name": "Tal",

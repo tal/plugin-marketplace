@@ -1,6 +1,5 @@
 {
   "name": "smart-notifications",
-  "version": "0.1.0",
   "description": "macOS desktop notifications for agent events with terminal activation support.",
   "author": {
     "name": "Mat Brown",
