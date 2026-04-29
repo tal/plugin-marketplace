@@ -29,9 +29,9 @@
       "description": "Skills for configuring and writing Karabiner-Elements rules on macOS"
     },
     {
-      "name": "sort-videos",
-      "source": "./plugins/sort-videos",
-      "description": "Find, transcribe, and sort downloaded videos into topic folders with OCR extraction"
+      "name": "sort",
+      "source": "./plugins/sort",
+      "description": "Sort downloaded files into ~/Downloads/AI Library/ — dispatches by type (videos, images, archives, DMGs, apps) and delegates videos to a full transcription pipeline"
     }
   ]
 }

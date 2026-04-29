@@ -1,13 +1,19 @@
 {
-  "name": "sort-videos",
-  "description": "Find, transcribe, and sort downloaded videos from ~/Downloads into topic folders in AI Library. Includes OCR extraction for on-screen text in recipe and product videos.",
-  "version": "0.1.0",
+  "name": "sort",
+  "description": "Sort and process files in any folder. `/sort` dispatches on file type — videos, images, archives, DMGs, app bundles, documents — and routes each to the right pipeline. Output lands under `<target>/AI Library/` where `<target>` defaults to the folder Claude Code was launched in (so the skill works on ~/Downloads, ~/Desktop, a project folder, or anywhere else). Videos delegate to `/sort-videos` for transcription, OCR, talk/lecture detection with extended summaries, and tagged MP3 export. Images are type-detected (screenshots/memes/photos) and topic-tagged via a vision agent. Documents are text-extracted and classified by an agent into existing folders, with a sensitivity flag for personal info. Archives and DMGs are peeked and routed to app or document or image pipelines. Installers whose app is already in /Applications/ are auto-deleted; nothing else is deleted without confirmation. User overrides and per-extension rules via sort.md / sort.local.md at project and user scope; interactive rule creation via /sort:add-rule.",
   "keywords": [
+    "sort",
+    "organize",
     "video",
     "transcribe",
-    "sort",
     "ocr",
     "whisper",
-    "yt-dlp"
+    "yt-dlp",
+    "downloads",
+    "desktop",
+    "ai-library",
+    "documents",
+    "pdf",
+    "screenshot"
   ]
 }

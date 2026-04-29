@@ -1,7 +1,8 @@
 ---
 name: sort-videos
-description: This skill should be invoked when the user runs `/sort-videos` (with or without a path argument) or asks to "sort my downloaded videos", "transcribe and categorize videos", "organize my AI Library", "summarize a talk or lecture video", or "reprocess a video". Finds yt-dlp downloads in `~/Downloads`, transcribes them with whisper-cpp, optionally runs OCR on frames, enriches from Instagram oEmbed captions, detects talks/lectures (from length and content) for an extended summary format, exports a tagged MP3 for talks/lectures, renames, moves them into topic folders under `~/Downloads/AI Library/`, and writes a companion `.md` summary. Asks the user when the talk/lecture classification is uncertain. Pass a file path or glob to reprocess a specific video.
+description: Transcribe, summarize, and categorize downloaded videos in any folder — defaults to the folder Claude Code was launched in (yt-dlp output, Instagram reels, TikTok, YouTube downloads, conference talks, lectures). Invoke this skill when the user runs `/sort-videos` (with or without a path argument), or asks to "sort my downloaded videos", "transcribe this video", "transcribe and categorize videos", "organize the AI Library", "summarize this talk", "summarize this lecture video", "make notes from this reel", "process this Instagram reel", "save this talk for listening later", "what's in this video", or "reprocess a video". Make sure to use this skill whenever the user references a video file (especially yt-dlp filenames like `Instagram - Video by <creator> [<id>].mp4`), wants a written summary of a video they downloaded, or wants to convert a long talk/lecture into something they can skim or listen to as audio — even when they don't explicitly say "sort", and regardless of which folder the video is in. The skill transcribes with whisper-cpp, optionally OCRs frames for on-screen text, enriches from Instagram oEmbed captions, detects talks/lectures (from length + content) for an extended summary format, exports a tagged MP3 for talks/lectures, renames the file with a content-derived slug, moves it into a topic folder under `<target>/AI Library/` (created if absent, where `<target>` is the folder containing the video or the folder Claude was launched in), and writes a companion `.md` summary. Asks the user only when the talk/lecture classification is genuinely ambiguous. Pass a file path or glob to reprocess a specific video.
 user-invocable: true
+context: fork
 allowed-tools:
   - Read
   - Write
@@ -19,19 +20,29 @@ Arguments passed: `$ARGUMENTS`
 
 ## 0. Determine target videos
 
+The **target folder** is wherever the videos live and where the AI Library should be created. Resolution order:
+
+1. If `$ARGUMENTS` is a directory path, that's the target folder (search videos inside it).
+2. If `$ARGUMENTS` is a file path or glob, the target folder is the parent of those files.
+3. Otherwise, the target folder is the **current working directory** — the folder Claude Code was launched in.
+
+The skill is **location-agnostic**: it works on `~/Downloads`, `~/Desktop`, a project folder, or anywhere else.
+
 **If arguments were provided** (a file path, glob pattern, or filename):
 
 - Resolve the path. It may be:
-  - An absolute path (e.g., `/Users/tal/Downloads/AI Library/Comedy/some-video.mp4`)
+  - An absolute path
   - A relative path from the current working directory
-  - A filename to search for in `~/Downloads/` and `~/Downloads/AI Library/` (recursive)
-  - A glob pattern (e.g., `*.mp4`, `Comedy/*.webm`)
-- The file may already live inside `~/Downloads/AI Library/` — that's fine for re-runs. Process it in place.
+  - A filename to search for under the target folder (recursive, including `<target>/AI Library/`)
+  - A glob pattern (e.g., `*.mp4`, `<topic>/*.webm`)
+- The file may already live inside `<target>/AI Library/` — that's fine for re-runs. Process it in place.
 - For re-runs of files already in AI Library: the video stays in its current folder unless the user asks to re-categorize. Re-generate the `.md` file alongside it, overwriting any existing one.
 
 **If no arguments were provided** (batch mode):
 
-Find all video files downloaded by yt-dlp in `~/Downloads` (root level) and `~/Downloads/Recents/`. Match any common video extension: `.mp4`, `.webm`, `.mkv`, `.avi`, `.mov`, `.flv`, `.m4v`, `.ts`, `.wmv`. Files follow the yt-dlp naming pattern: `<Platform> - <title> [<id>].<ext>` (e.g., `Instagram - Video by stuartbrazell [DWM02r5EtFq].mp4`). Also match the legacy pattern `Video by*.<ext>` for older downloads. Do NOT include files already inside `~/Downloads/AI Library/`.
+Find video files at the root of the target folder and in `<target>/Recents/` if it exists. Match any common video extension: `.mp4`, `.webm`, `.mkv`, `.avi`, `.mov`, `.flv`, `.m4v`, `.ts`, `.wmv`. Common yt-dlp naming pattern: `<Platform> - <title> [<id>].<ext>` (e.g., `Instagram - Video by stuartbrazell [DWM02r5EtFq].mp4`). Also match the legacy pattern `Video by*.<ext>` for older downloads. Do NOT include files already inside `<target>/AI Library/`.
+
+Create `<target>/AI Library/` if it doesn't exist before moving anything: `mkdir -p "<target>/AI Library"`.
 
 For each video found, do the following:
 
@@ -122,29 +133,26 @@ Do NOT ask when the classification is obvious (a 2-minute Instagram reel, or a c
 
 ## 5. Categorize
 
-Based on the transcription content, determine the best topic folder. Reuse existing folders in `~/Downloads/AI Library/` when the content fits. Common categories include but are not limited to:
+Based on the transcription (and OCR / caption enrichment, if collected), determine the best topic folder under `<target>/AI Library/`.
 
-- Comedy
-- Marvel & TV
-- Self-Improvement
-- Food & Restaurants
-- Game Recs
-- Tech
-- Music
-- Sports
-- Education
-- Children & Parenting
+**Discover existing folders at runtime — never hardcode topic names.** Each folder builds up its own taxonomy across runs, and a folder list that ships with the skill would be wrong for everyone:
 
-If none of the existing folders fit, create a new descriptively named topic folder.
+```bash
+ls -1 "<target>/AI Library/" 2>/dev/null | grep -vE '^(Review|_|\.)'
+```
 
-Videos classified as `talk-or-lecture` in step 4 should prefer the `Education` folder, or a more specific subject folder if one fits (e.g., `Tech`, `Self-Improvement`). Create a dedicated `Talks & Lectures` folder only if the content doesn't fit any existing subject-based folder.
+Use that list as the candidate set. **Reuse an existing folder whenever the content plausibly fits** — that's how the user's taxonomy stays coherent over time, and minor variation ("Productivity" vs. "Self-Improvement") will fragment the library if you're too eager to create new folders.
+
+Only create a new folder when nothing existing fits. Pick a descriptive 1-3 word Title Case name (e.g., `Cooking`, `Woodworking`, `Personal Finance`). Avoid hyper-specific names that won't catch future videos — prefer broad-but-clear topic names.
+
+For videos classified as `talk-or-lecture` in step 4: pick a subject folder when one obviously matches the topic (a tech talk → tech-related folder if the user has one). Otherwise default to a folder named for educational content if one already exists, or fall back to creating one named `Talks & Lectures` only if the user has nothing similar yet.
 
 ## 6. Rename, move, and create markdown
 
 **For new videos (not yet in AI Library):**
 
 - Rename the video file to include a brief description of the content while keeping the platform, creator name, video ID, and original extension. Format: `<brief-description> - <platform> - <creator name> [<video ID>].<original-ext>` (e.g., `sesame-chicken-recipe - Instagram - Video by louishowardpt [DVs_UEwiIx9].mp4`). For legacy files without a platform prefix, use `Instagram` as the default. Keep the description short (2-5 words, lowercase, hyphenated).
-- Create the topic folder under `~/Downloads/AI Library/` if it doesn't exist.
+- Create the topic folder under `<target>/AI Library/` if it doesn't exist.
 - Move the renamed video file into that folder.
 
 **For re-runs (file already in AI Library):**
