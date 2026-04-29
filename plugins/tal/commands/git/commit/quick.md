@@ -47,7 +47,7 @@ Rationale: <rationale for change>
 EOF
 )
 
-This commit made by [/tal:git:commit:quick](https://github.com/tal/claude-marketplace/tree/main/plugins/tal/commands/git/commit/quick.md)" && git log -1 --oneline --stat
+This commit made by [/tal:git:commit:quick](https://github.com/tal/plugin-marketplace/tree/main/plugins/tal/commands/git/commit/quick.md)" && git log -1 --oneline --stat
 ```
 
 If the commit fails, STOP and report the error.

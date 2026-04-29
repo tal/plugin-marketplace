@@ -203,7 +203,7 @@ For each feature (updating TodoWrite status as you go):
 
    Rationale: Users requested the ability to authenticate using their existing OAuth2 providers (Google, GitHub) instead of creating new credentials. This reduces friction in the onboarding process and improves security by leveraging established identity providers.
 
-   This commit made by [/tal:git:commit:atomic](https://github.com/tal/claude-marketplace/tree/main/plugins/tal/commands/git/commit/atomic.md)
+   This commit made by [/tal:git:commit:atomic](https://github.com/tal/plugin-marketplace/tree/main/plugins/tal/commands/git/commit/atomic.md)
    ```
 
 3. **Create the commit using heredoc:**
@@ -218,7 +218,7 @@ For each feature (updating TodoWrite status as you go):
 
    Rationale: <rationale paragraph>
 
-   This commit made by [/tal:git:commit:atomic](https://github.com/tal/claude-marketplace/tree/main/plugins/tal/commands/git/commit/atomic.md)
+   This commit made by [/tal:git:commit:atomic](https://github.com/tal/plugin-marketplace/tree/main/plugins/tal/commands/git/commit/atomic.md)
    EOF
    )"
    ```
