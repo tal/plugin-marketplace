@@ -120,16 +120,37 @@ Tasks:
 1. Pick a destination folder. If an existing one fits, set "reuse": true. Otherwise propose
    a new folder name in Title Case (1-3 words). Folder names should describe the kind of
    document (e.g. "Invoices", "Contracts", "Research") — do not invent personal labels.
-2. Decide if the document contains personally sensitive content: signed legal contracts,
-   medical records, financial statements with account numbers, recovery keys / credentials,
-   government IDs, or anything a reasonable person would file away from casual access.
+2. Decide if the document is **sensitive** (the user would not want a casual viewer of their
+   filesystem to see it). Be conservative — over-flagging dumps unrelated documents into a
+   single Sensitive/ pile and makes it unusable. Only flag as sensitive if the document
+   contains material a casual viewer could exploit or that is genuinely private:
+
+   - "credentials" — concrete credential material: API keys, OAuth/access tokens, SSH or
+     PGP private keys, recovery codes, backup codes, .env contents with values, plaintext
+     passwords, 2FA seed phrases.
+   - "identity" — government-issued identifiers tied to a specific person: SSN/SIN/Aadhaar
+     numbers, passport scans, driver's-license scans, birth certificate, national ID.
+   - "financial" — full account numbers attached to a person: bank statements, brokerage
+     statements, full credit-card numbers, tax filings naming the user, loan documents.
+     Plain receipts/invoices are NOT sensitive (route them as a regular topic).
+   - "medical" — medical records that name a specific patient with diagnosis, prescription,
+     lab results, or treatment information. A wellness article is NOT medical.
+   - "legal" — signed legal documents binding a specific person: contracts, NDAs, court
+     filings, settlement agreements, attorney correspondence. A blank template or a public
+     court opinion is NOT sensitive.
+   - "other" — sensitive but doesn't fit above. Use sparingly. Always explain in
+     `description`.
+
+   If none of the above apply, return "no". The following are NOT sensitive: receipts
+   without full card numbers, travel itineraries, meeting notes, ebooks, manuals, blog
+   posts, journal articles, recipes, marketing PDFs, blank tax forms, public records.
 3. Rate your confidence in the topic choice from 0.0 to 1.0.
 
 Reply with JSON only:
 {
   "topic": "...",
   "reuse": true | false,
-  "sensitive": true | false,
+  "sensitive": "no" | "credentials" | "identity" | "financial" | "medical" | "legal" | "other",
   "confidence": 0.0-1.0,
   "description": "one sentence on what the document is"
 }
@@ -139,8 +160,8 @@ When a vision input is used, attach the rendered PNG and pass `[scanned — see 
 
 ## 4. Route by reply
 
-- `sensitive: true` → `<sensitive_dir>`. Resolve `<sensitive_dir>` once per run: prefer the value from `~/.claude/sort.local.md` / `sort.md` (§0.5 of `SKILL.md`), otherwise the first sensitive item triggers a single AskUserQuestion offering `<target>/AI Library/Sensitive/` (default), `~/Documents/Sensitive/`, or a custom path. Cache the answer for the rest of the run.
-- `confidence < 0.5` → defer. Add the file to the run-end batch AskUserQuestion (same batching rule as `SKILL.md` §3) instead of forcing Review/ immediately.
+- `sensitive` is anything other than `"no"` → `<sensitive_dir>/<Category>/`, where `<Category>` is the Title-Case form of the enum value (`credentials → Credentials`, `identity → Identity`, `financial → Financial`, `medical → Medical`, `legal → Legal`, `other → Other`). Create the subfolder if it doesn't exist. Resolve `<sensitive_dir>` once per run: prefer the value from `~/.claude/sort.local.md` / `sort.md` (§0.5 of `SKILL.md`), otherwise the first sensitive item triggers a single AskUserQuestion offering `<target>/AI Library/Sensitive/` (default), `~/Documents/Sensitive/`, or a custom path. Cache the answer for the rest of the run.
+- `confidence < 0.5` → defer. Add the file to the run-end batch AskUserQuestion (same batching rule as `SKILL.md` §3) instead of forcing Review/ immediately. Confidence applies to the topic choice only — the agent's sensitivity classification is followed regardless of confidence.
 - Otherwise → `<target>/AI Library/<topic>/`. Create the folder if it doesn't exist.
 
 Never overwrite an existing destination file silently — append a `-2`, `-3`, etc. suffix on collision.
@@ -159,6 +180,6 @@ On destination-name collisions, append `-2`, `-3`, etc. — never overwrite sile
 For each document, return one row to the dispatcher's summary with one of these Action values:
 
 - `classified` — moved to a topic folder
-- `classified-sensitive` — moved to the sensitive folder
+- `classified-sensitive(<Category>)` — moved to `<sensitive_dir>/<Category>/`. Always include the resolved category in parens (`Credentials`, `Identity`, `Financial`, `Medical`, `Legal`, `Other`) so the user can spot-check whether the categorization looks right.
 - `review` — fell through to Review/ (extraction failure, low confidence with no batch resolution, malformed reply)
 - `error` — tool or agent failure; include a short reason

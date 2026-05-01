@@ -30,6 +30,7 @@ Reply with **exactly one line** in one of these forms — no preamble, no explan
 ```
 route: <path>
 route_sensitive
+route_sensitive: <category>
 delete
 skip
 fallthrough
@@ -43,7 +44,15 @@ Path conventions for `route:`:
 Action semantics:
 
 - **`route: <path>`** — move the file there. Folder created if missing.
-- **`route_sensitive`** — move the file to the run's `sensitive_dir` (set in user rules; defaults to `<target>/AI Library/Sensitive/`).
+- **`route_sensitive`** / **`route_sensitive: <category>`** — move the file to the run's `sensitive_dir` (set in user rules; defaults to `<target>/AI Library/Sensitive/`). Prefer the `<category>` form so the file lands in a subfolder instead of a single undifferentiated pile. Canonical categories — pick the **best fit**, not the broadest:
+  - `credentials` — concrete credential material: API keys, OAuth/access tokens, SSH or PGP private keys, recovery codes, backup codes, .env contents with values, plaintext passwords, 2FA seed phrases.
+  - `identity` — government-issued identifiers tied to a specific person: SSN/SIN/Aadhaar numbers, passport scans, driver's-license scans, birth certificates.
+  - `financial` — full account numbers attached to a person: bank statements, brokerage statements, full credit-card numbers, tax filings naming the user, loan documents. Plain receipts/invoices without account numbers are NOT financial-sensitive.
+  - `medical` — medical records that name a specific patient with diagnosis, prescription, lab results, or treatment information.
+  - `legal` — signed legal documents binding a specific person: contracts, NDAs, court filings, settlement agreements, attorney correspondence.
+  - `other` — sensitive but doesn't fit above. Use sparingly.
+
+  Be conservative. The whole point of `Sensitive/` is to keep the genuinely-private things out of casual view; over-flagging dilutes the signal. If the file is merely *personal* (a receipt, a meeting note, a travel itinerary) but not *secret*, prefer `route:` to a regular topic folder over `route_sensitive`.
 - **`delete`** — only if the user's prompt explicitly authorizes deletion for matched files. Never delete on your own initiative.
 - **`skip`** — leave the file untouched. Use when the user's prompt indicates this file shouldn't be moved.
 - **`fallthrough`** — let the default `/sort` pipeline classify this file. Use when the user's prompt doesn't actually apply here.

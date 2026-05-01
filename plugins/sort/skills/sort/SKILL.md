@@ -89,6 +89,7 @@ Apply the agent's reply the same way you'd apply a static rule of that action:
 
 - `route: <path>` → move the file there (`AI Library/<Topic>/` shorthand resolves under `<target>`; create the folder if missing).
 - `route_sensitive` → move to the run's resolved `sensitive_dir/`.
+- `route_sensitive: <category>` → move to `<sensitive_dir>/<Category>/` where `<Category>` is the Title-Case form of the agent's category (`credentials → Credentials`, etc.). Create the subfolder if missing. The agent's allowed categories are listed in `agents/sort-route-by-prompt.md`.
 - `delete` → delete the file. Report it in §5 with the rule reference.
 - `skip` → leave the file alone.
 - `fallthrough` → drop back to §1 classification for this file.
@@ -253,10 +254,10 @@ Anything that didn't match a type bucket (`.json`, `.torrent`, `.spk`, `.ipsw`, 
 **Sensitive-name default**: before routing to Review/, check the basename (case-insensitive) against this regex:
 
 ```
-(recovery|backup-codes?|\.env|credentials|secret|private-key|api-key|api_key|recovery-kit)
+(recovery|backup-codes?|\.env|credentials|secret|private-key|api-key|api_key|recovery-kit|\.pem$|\.key$|id_rsa|id_ed25519)
 ```
 
-If it matches, route to the resolved `sensitive_dir` instead of Review/ — recovery keys, dotenv files, and credential bundles should not sit unguarded in a manual-triage pile. This default fires only if no §0.5 user rule already fired for the file (rules always take priority). Users who don't want this default can add a rule with `match: { phase: unknown-sensitive-default } action: skip`.
+If it matches, route to `<sensitive_dir>/Credentials/` (not the top-level `<sensitive_dir>/`) — by construction this regex only matches credential material (recovery keys, dotenv files, SSH/API keys), so the subcategory is already known. Create the `Credentials/` subfolder if missing. This default fires only if no §0.5 user rule already fired for the file (rules always take priority). Users who don't want this default can add a rule with `match: { phase: unknown-sensitive-default } action: skip`.
 
 ## 3. Ask when uncertain
 
@@ -289,7 +290,7 @@ Print a summary table:
 |---|---|---|---|---|
 
 - `Type` — `video`, `image`, `archive`, `disk-image`, `installer`, `app-bundle`, `document`, `unknown`
-- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows.
+- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive(<Category>)` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows. For sensitive items, `<Category>` is one of `Credentials | Identity | Financial | Medical | Legal | Other` and tells the user which subfolder of `<sensitive_dir>/` it landed in.
 - `Rule` — when a §0.5 user rule fired, show `<file>:<index>` (e.g. `~/.claude/sort.local.md:1`); blank when defaults applied
 
 Also list:

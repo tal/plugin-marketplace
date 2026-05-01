@@ -80,6 +80,21 @@ options:
 
 If the user picks Route, ask a plain-text follow-up for the destination. Accept `AI Library/<Topic>/` shorthand or absolute/tilde paths.
 
+If the user picks "Treat as sensitive", ask a follow-up for the subcategory so the file lands in `<sensitive_dir>/<Category>/` instead of a single undifferentiated pile:
+
+```
+question: "Which subfolder of Sensitive/ should this rule route into?"
+header: "Sensitive subcategory"
+options:
+  - "Credentials (API keys, recovery codes, .env, SSH keys)"
+  - "Identity (SSN, passport, driver's license, birth certificate)"
+  - "Financial (bank/brokerage statements, tax filings with full IDs)"
+  - "Medical (medical records, lab results, prescriptions)"
+  - "Legal (signed contracts, court filings, attorney correspondence)"
+  - "Other (sensitive but doesn't fit above)"
+  - "No subcategory (route to top-level Sensitive/)"
+```
+
 If the user picks "Hand to an agent with custom instructions", ask a plain-text follow-up for the prompt itself — natural-language routing instructions the agent will apply when this rule fires (e.g. "Decide if this PDF is a receipt, invoice, or contract and route accordingly. Fall through if it's none of those."). The prompt is required.
 
 ### 4. Optional note
@@ -97,10 +112,11 @@ ruby "${CLAUDE_PLUGIN_ROOT}/scripts/add-rule.rb" \
   "<action>" \
   "<to path or empty>" \
   --note="<note or empty>" \
-  --prompt="<prompt text or empty>"
+  --prompt="<prompt text or empty>" \
+  --category="<sensitive subcategory or empty>"
 ```
 
-`--prompt` is only required when `<action>` is `prompt`. Omit any flag whose value is empty.
+`--prompt` is only required when `<action>` is `prompt`. `--category` is only meaningful when `<action>` is `route_sensitive` and is optional even there (omit to land in top-level `<sensitive_dir>/`). Omit any flag whose value is empty.
 
 The script:
 - Creates the file with a default template if it doesn't exist
@@ -116,7 +132,7 @@ Show the user:
 
 ## Argument shorthand (optional)
 
-If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `prompt`, `note`. Anything missing falls back to the interactive flow.
+If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `prompt`, `category`, `note`. Anything missing falls back to the interactive flow.
 
 Example:
 

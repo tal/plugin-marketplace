@@ -55,6 +55,7 @@ rules:
 
   - match: { filename_regex: "(?i)(recovery|backup-codes|\\.env)" }
     action: route_sensitive
+    category: credentials
 ---
 
 # Free-form notes the dispatcher will read into agent context
@@ -73,13 +74,14 @@ Anything below the closing `---` is loose markdown, surfaced to classification a
 
 ## Rule shape
 
-Every rule has a `match` block and an `action`. Optional `to` (for `action: route`), `prompt` (for `action: prompt`), and `note` (free text, shown in the §5 summary).
+Every rule has a `match` block and an `action`. Optional `to` (for `action: route`), `prompt` (for `action: prompt`), `category` (for `action: route_sensitive`), and `note` (free text, shown in the §5 summary).
 
 ```yaml
 - match: { <matcher>: <value>, ... }
   action: <delete | route | route_sensitive | ask | skip | prompt>
   to: <path>          # only with action: route
   prompt: <string>    # only with action: prompt
+  category: <string>  # only with action: route_sensitive — see below
   note: <string>      # optional, surfaces in summary
 ```
 
@@ -130,7 +132,7 @@ Example — silence the pandoc install prompt when no `.epub` files are in the r
 |---|---|
 | `delete` | Remove the file. Always reported in the §5 summary with the rule reference. Use sparingly — delete is irreversible. |
 | `route` | Move to `to:`. Path can be absolute (`/some/abs/path`), tilde-expanded (`~/Archive`), or `AI Library/<topic>/` shorthand which resolves under the current run's `<target>` folder (so the same shorthand works whether the user is sorting `~/Downloads` or `~/Desktop`). Folder is created if missing. |
-| `route_sensitive` | Move to `sensitive_dir`. Cleaner than hardcoding the path in every sensitive rule. |
+| `route_sensitive` | Move to `<sensitive_dir>/<Category>/` if `category:` is set, otherwise to the top-level `<sensitive_dir>/`. Canonical category names: `credentials`, `identity`, `financial`, `medical`, `legal`, `other` (the dispatcher Title-Cases them to `Credentials`, `Identity`, `Financial`, `Medical`, `Legal`, `Other` for the actual folder name). Cleaner than hardcoding the path in every sensitive rule, and lets the user see at a glance which kind of secret each item is. |
 | `ask` | Force AskUserQuestion for this file even if the dispatcher would have auto-classified it. |
 | `skip` | Leave the file alone. Useful when something arrives in the target folder that isn't yours to sort, or to silence a prompt phase. |
 | `prompt` | Hand the file to the plugin's `sort-route-by-prompt` agent (see `agents/sort-route-by-prompt.md`) with the rule's `prompt:` text as natural-language routing instructions. The agent sees the file (Read/vision for images and docs), the existing topic folders under `<target>/AI Library/`, and the rule's prompt; it replies with a destination path or a `skip`/`delete`/`fallthrough` decision. Use when the routing logic is too nuanced for static patterns (e.g. "decide if this PDF is a receipt, invoice, or contract and route accordingly"). |
@@ -157,6 +159,8 @@ The dispatcher soft-fails on bad config:
 - Rule with unknown matcher or action key → one warning line with the rule index, skip that rule.
 - `to:` path on a non-`route` action → ignored.
 - `prompt:` on a non-`prompt` action → ignored.
+- `category:` on a non-`route_sensitive` action → ignored.
+- `category:` not in the canonical list (`credentials | identity | financial | medical | legal | other`) → warning logged, value passed through verbatim and Title-Cased so the user can also use ad-hoc subcategories if they want.
 - Missing `to:` on `action: route` → rule treated as `ask` and a warning logged.
 - Missing or empty `prompt:` on `action: prompt` → rule treated as `ask` and a warning logged.
 
