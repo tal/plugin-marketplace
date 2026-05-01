@@ -4,11 +4,12 @@
 # add-rule.rb — append a rule to a sort config file
 #
 # Usage:
-#   add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>]
+#   add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>]
 #
 # Examples:
 #   add-rule.rb ~/.claude/sort.local.md '{ext: [.torrent, .nzb]}' delete '' --note="auto-delete torrents"
 #   add-rule.rb ~/.claude/sort.md '{filename_glob: "Invoice-*.pdf"}' route 'AI Library/Invoices/'
+#   add-rule.rb ~/.claude/sort.md '{ext: [.pdf]}' prompt '' --prompt="Decide if this is a receipt, invoice, or contract."
 #
 # - Creates the target file with a default template if it doesn't exist.
 # - Parses existing YAML frontmatter, appends to rules:, writes back.
@@ -27,7 +28,7 @@ def expand(path)
 end
 
 usage = <<~USAGE
-  Usage: add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>]
+  Usage: add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>]
 USAGE
 
 # Parse args
@@ -37,19 +38,26 @@ action = ARGV.shift or die(usage)
 
 target = ""
 note = nil
+prompt = nil
 ARGV.each do |arg|
   if arg.start_with?("--note=")
     note = arg.sub("--note=", "")
+  elsif arg.start_with?("--prompt=")
+    prompt = arg.sub("--prompt=", "")
   else
     target = arg
   end
 end
 
-valid_actions = %w[delete route route_sensitive ask skip]
+valid_actions = %w[delete route route_sensitive ask skip prompt]
 die("invalid action '#{action}', expected one of: #{valid_actions.join(", ")}") unless valid_actions.include?(action)
 
 if action == "route" && target.to_s.empty?
   die("action 'route' requires a target path")
+end
+
+if action == "prompt" && prompt.to_s.strip.empty?
+  die("action 'prompt' requires --prompt=<text>")
 end
 
 # Parse the match expression
@@ -113,6 +121,7 @@ front["rules"] ||= []
 # Build the new rule
 rule = { "match" => match, "action" => action }
 rule["to"] = target unless target.to_s.empty?
+rule["prompt"] = prompt if prompt && !prompt.to_s.empty?
 rule["note"] = note if note
 
 front["rules"] << rule

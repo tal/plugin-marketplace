@@ -69,6 +69,34 @@ Apply rules at every dispatcher decision point:
 - Top-level `sensitive_dir:` overrides the prompt default in `documents.md` §4. Tilde expansion is supported. If unset, the dispatcher defaults to `<target>/AI Library/Sensitive/`.
 - Per-file rules can short-circuit §1 classification, replace any pipeline section's routing decision, or skip the §0 tool prompt in `documents.md`.
 
+### `action: prompt` rules
+
+When a winning rule has `action: prompt`, hand the file off to the **`sort-route-by-prompt`** agent (defined in this plugin under `agents/sort-route-by-prompt.md`) instead of running default classification. The agent reads the file, applies the rule's `prompt:` text as its routing instructions, and replies with a single-line decision the dispatcher then executes.
+
+Invoke it via the Agent tool with `subagent_type: "sort-route-by-prompt"`. The agent's contract (inputs, allowed reply forms, constraints) lives in its own definition file — don't restate it here. The dispatcher's job is just to assemble the inputs:
+
+```
+prompt: <rule.prompt verbatim>
+file:   <absolute path>
+target: <run target folder>
+topics: <one folder per line, from `ls -1 "<target>/AI Library/"`>
+note:   <rule.note if present, else omit>
+```
+
+Pass these as a structured block in the Agent invocation's prompt.
+
+Apply the agent's reply the same way you'd apply a static rule of that action:
+
+- `route: <path>` → move the file there (`AI Library/<Topic>/` shorthand resolves under `<target>`; create the folder if missing).
+- `route_sensitive` → move to the run's resolved `sensitive_dir/`.
+- `delete` → delete the file. Report it in §5 with the rule reference.
+- `skip` → leave the file alone.
+- `fallthrough` → drop back to §1 classification for this file.
+
+If the reply is malformed (more than one line, doesn't match the allowed forms), log a warning and treat as `ask`.
+
+Batch parallelism: if multiple files match `action: prompt` rules, spawn the agents in parallel — they're independent. Show `prompt(<agent decision>)` in the §5 summary's `Action` column so the user can see the agent decided it.
+
 Soft-fail behavior:
 - No rule files present → continue with defaults silently.
 - Bad YAML in a file → log one line naming the file, skip that file, continue with the others.
@@ -261,7 +289,7 @@ Print a summary table:
 |---|---|---|---|---|
 
 - `Type` — `video`, `image`, `archive`, `disk-image`, `installer`, `app-bundle`, `document`, `unknown`
-- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive` / `review` / `error` (from `documents.md`), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows.
+- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows.
 - `Rule` — when a §0.5 user rule fired, show `<file>:<index>` (e.g. `~/.claude/sort.local.md:1`); blank when defaults applied
 
 Also list:

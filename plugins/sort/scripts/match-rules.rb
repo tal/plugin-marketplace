@@ -180,6 +180,11 @@ def render_action(rule)
   action = rule["action"] || "?"
   parts = [action]
   parts << "→ #{rule["to"]}" if rule["to"]
+  if rule["prompt"]
+    snippet = rule["prompt"].to_s.gsub(/\s+/, " ").strip
+    snippet = "#{snippet[0, 77]}…" if snippet.length > 78
+    parts << "→ #{snippet.inspect}"
+  end
   parts << "  (#{rule["note"]})" if rule["note"]
   parts.join(" ")
 end

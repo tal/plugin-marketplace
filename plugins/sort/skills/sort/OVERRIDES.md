@@ -73,12 +73,13 @@ Anything below the closing `---` is loose markdown, surfaced to classification a
 
 ## Rule shape
 
-Every rule has a `match` block and an `action`. Optional `to` (for `action: route`) and `note` (free text, shown in the §5 summary).
+Every rule has a `match` block and an `action`. Optional `to` (for `action: route`), `prompt` (for `action: prompt`), and `note` (free text, shown in the §5 summary).
 
 ```yaml
 - match: { <matcher>: <value>, ... }
-  action: <delete | route | route_sensitive | ask | skip>
+  action: <delete | route | route_sensitive | ask | skip | prompt>
   to: <path>          # only with action: route
+  prompt: <string>    # only with action: prompt
   note: <string>      # optional, surfaces in summary
 ```
 
@@ -132,6 +133,21 @@ Example — silence the pandoc install prompt when no `.epub` files are in the r
 | `route_sensitive` | Move to `sensitive_dir`. Cleaner than hardcoding the path in every sensitive rule. |
 | `ask` | Force AskUserQuestion for this file even if the dispatcher would have auto-classified it. |
 | `skip` | Leave the file alone. Useful when something arrives in the target folder that isn't yours to sort, or to silence a prompt phase. |
+| `prompt` | Hand the file to the plugin's `sort-route-by-prompt` agent (see `agents/sort-route-by-prompt.md`) with the rule's `prompt:` text as natural-language routing instructions. The agent sees the file (Read/vision for images and docs), the existing topic folders under `<target>/AI Library/`, and the rule's prompt; it replies with a destination path or a `skip`/`delete`/`fallthrough` decision. Use when the routing logic is too nuanced for static patterns (e.g. "decide if this PDF is a receipt, invoice, or contract and route accordingly"). |
+
+Example — let an agent decide where mixed-content PDFs go:
+
+```yaml
+- match: { ext: [.pdf] }
+  action: prompt
+  prompt: |
+    Look at this PDF. If it's a receipt or invoice, route to AI Library/Receipts/.
+    If it's a tax document (W-2, 1099, return), route to AI Library/Taxes/.
+    If it's a contract or legal document, route to AI Library/Legal/.
+    Otherwise fall through to default classification.
+```
+
+The agent's allowed responses are: `route: <path>`, `route_sensitive`, `delete`, `skip`, or `fallthrough` (let the default pipeline handle it). The dispatcher applies that decision the same way it would a static rule.
 
 ## Validation
 
@@ -140,7 +156,9 @@ The dispatcher soft-fails on bad config:
 - File with bad YAML frontmatter → one warning line naming the file, skip that file.
 - Rule with unknown matcher or action key → one warning line with the rule index, skip that rule.
 - `to:` path on a non-`route` action → ignored.
+- `prompt:` on a non-`prompt` action → ignored.
 - Missing `to:` on `action: route` → rule treated as `ask` and a warning logged.
+- Missing or empty `prompt:` on `action: prompt` → rule treated as `ask` and a warning logged.
 
 The run never aborts because of a misconfigured rule. Defaults take over.
 

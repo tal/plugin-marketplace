@@ -64,6 +64,7 @@ options:
   - "Delete the file"
   - "Route to a specific folder"
   - "Treat as sensitive (route to sensitive_dir)"
+  - "Hand to an agent with custom instructions"
   - "Ask interactively each time"
 ```
 
@@ -79,6 +80,8 @@ options:
 
 If the user picks Route, ask a plain-text follow-up for the destination. Accept `AI Library/<Topic>/` shorthand or absolute/tilde paths.
 
+If the user picks "Hand to an agent with custom instructions", ask a plain-text follow-up for the prompt itself — natural-language routing instructions the agent will apply when this rule fires (e.g. "Decide if this PDF is a receipt, invoice, or contract and route accordingly. Fall through if it's none of those."). The prompt is required.
+
 ### 4. Optional note
 
 Ask for a one-line note describing why this rule exists. Skippable.
@@ -93,8 +96,11 @@ ruby "${CLAUDE_PLUGIN_ROOT}/scripts/add-rule.rb" \
   "<match yaml inline>" \
   "<action>" \
   "<to path or empty>" \
-  --note="<note or empty>"
+  --note="<note or empty>" \
+  --prompt="<prompt text or empty>"
 ```
+
+`--prompt` is only required when `<action>` is `prompt`. Omit any flag whose value is empty.
 
 The script:
 - Creates the file with a default template if it doesn't exist
@@ -110,7 +116,7 @@ Show the user:
 
 ## Argument shorthand (optional)
 
-If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `note`. Anything missing falls back to the interactive flow.
+If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `prompt`, `note`. Anything missing falls back to the interactive flow.
 
 Example:
 
