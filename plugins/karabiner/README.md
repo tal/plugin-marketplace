@@ -10,10 +10,16 @@ Skills for configuring and writing [Karabiner-Elements](https://karabiner-elemen
 
 ## Install
 
-Claude Code:
+Claude Code (from inside the session):
 
 ```
 /plugin install karabiner@tal-marketplace
+```
+
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin install karabiner@tal-marketplace
 ```
 
 Codex:

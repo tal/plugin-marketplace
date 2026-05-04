@@ -24,6 +24,13 @@ For example:
 /plugin install smart-notifications@tal-marketplace
 ```
 
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin marketplace add tal/plugin-marketplace
+claude plugin install <plugin-name>@tal-marketplace
+```
+
 ## Plugins
 
 Each plugin has its own README with the full feature/command/skill inventory — follow the links for details.

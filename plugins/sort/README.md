@@ -6,10 +6,16 @@ The skill is **location-agnostic**: by default it sorts the folder Claude Code w
 
 ## Install
 
-Claude Code:
+Claude Code (from inside the session):
 
 ```
 /plugin install sort@tal-marketplace
+```
+
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin install sort@tal-marketplace
 ```
 
 Codex:

@@ -4,10 +4,16 @@ Desktop notifications for Claude Code events on macOS using `terminal-notifier`.
 
 ## Install
 
-Claude Code:
+Claude Code (from inside the session):
 
 ```
 /plugin install smart-notifications@tal-marketplace
+```
+
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin install smart-notifications@tal-marketplace
 ```
 
 Codex:

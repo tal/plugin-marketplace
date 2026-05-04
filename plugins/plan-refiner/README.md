@@ -4,10 +4,16 @@ Turn rough ideas, vague specs, and napkin-sketch plans into implementable docume
 
 ## Install
 
-Claude Code:
+Claude Code (from inside the session):
 
 ```
 /plugin install plan-refiner@tal-marketplace
+```
+
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin install plan-refiner@tal-marketplace
 ```
 
 Codex:

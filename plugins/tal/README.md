@@ -4,10 +4,16 @@ Tal's personal common-helpers plugin — a grab-bag of workflow utilities that s
 
 ## Install
 
-Claude Code:
+Claude Code (from inside the session):
 
 ```
 /plugin install tal@tal-marketplace
+```
+
+Or from the shell with the `claude` CLI:
+
+```
+claude plugin install tal@tal-marketplace
 ```
 
 Codex:
