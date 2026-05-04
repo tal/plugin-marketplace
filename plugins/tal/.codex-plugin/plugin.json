@@ -1,8 +1,8 @@
 {
   "name": "tal",
-  "description": "Common plugin for git workflows, PR feedback, and CI troubleshooting.",
+  "description": "Tal's personal helpers: commit, PR feedback, App Store Connect, and partial-commit staging.",
   "author": {
-    "name": "AI DevX Team",
+    "name": "Tal Atlas",
     "email": "me@tal.by",
     "url": "https://github.com/tal"
   },
@@ -19,9 +19,9 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Tal",
-    "shortDescription": "Git, PR, and CI workflows packaged for Codex.",
-    "longDescription": "Provides reusable workflows for commits, PR feedback, App Store Connect, and debugging common engineering tasks in a shared team style.",
-    "developerName": "AI DevX Team",
+    "shortDescription": "Personal helpers for commits, PR feedback, and App Store Connect.",
+    "longDescription": "Reusable workflows for atomic and quick commits, PR review feedback, inline PR thread replies, App Store Connect / TestFlight tooling, and partial-commit line staging.",
+    "developerName": "Tal Atlas",
     "category": "Developer Tools",
     "capabilities": [
       "Read",
@@ -30,8 +30,8 @@
     "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/tal",
     "defaultPrompt": [
       "Prepare an atomic commit from the changes in this repo.",
-      "Collect PR feedback and summarize the actions needed.",
-      "Help me debug this CI failure."
+      "Fetch the review feedback on PR #123 and summarize what needs addressing.",
+      "Reply to that PR review thread inline."
     ],
     "brandColor": "#7C3AED"
   }

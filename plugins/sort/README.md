@@ -4,6 +4,22 @@ Sort and process files in any folder. The `/sort` skill dispatches on file type 
 
 The skill is **location-agnostic**: by default it sorts the folder Claude Code was launched in, so it works equally well on `~/Downloads`, `~/Desktop`, a project folder, or anywhere else. Pin it to a specific folder via the `sources:` override (see User rules below).
 
+## Install
+
+Claude Code:
+
+```
+/plugin install sort@tal-marketplace
+```
+
+Codex:
+
+```
+codex plugin install sort@tal-marketplace
+```
+
+See the [marketplace README](../../README.md) for adding the marketplace itself.
+
 ## Commands
 
 | Command | What it does |
@@ -22,7 +38,9 @@ Both skills run with `context: fork` — they execute in an isolated subagent so
 - **Disk images** (`.dmg`, `.iso`) → mounted, app-bundle-ID checked against `/Applications/`; auto-deleted if already installed
 - **App bundles** → bundle-ID checked; deleted if already installed, else routed to a topic folder
 - **Documents** (`.pdf`, `.docx`, `.epub`, etc.) → see `skills/sort/documents.md`. Text-extracted via `pdftotext`, classified by an agent into existing `AI Library/` folders, with a vision fallback for scanned PDFs and a sensitivity flag for personal documents
-- **Unknown** → `AI Library/Review/`, with a default sensitive-name regex that re-routes recovery keys, `.env`, credentials, etc. to `sensitive_dir`
+- **Unknown** → `AI Library/Review/`, with a default sensitive-name regex that re-routes recovery keys, `.env`, credentials, etc. to `<sensitive_dir>/Credentials/`
+
+Sensitive items land under `<sensitive_dir>/<Category>/` where `<Category>` is one of `Credentials`, `Identity`, `Financial`, `Medical`, `Legal`, or `Other` — chosen by the document classifier or named explicitly in a `route_sensitive` rule. `<sensitive_dir>` defaults to `<target>/AI Library/Sensitive/` and can be overridden via the `sensitive_dir:` top-level setting.
 
 ## User rules
 
@@ -68,12 +86,20 @@ rules:
   # suppress the pandoc install prompt when no .epub files are in the run
   - match: { phase: doc-tools-prompt, missing: [pandoc] }
     action: skip
+
+  # let an agent decide where mixed-content PDFs go
+  - match: { ext: [.pdf] }
+    action: prompt
+    prompt: |
+      If it's a receipt or invoice, route to AI Library/Receipts/.
+      If it's a tax document, route to AI Library/Taxes/.
+      Otherwise fall through.
 ---
 
 # Free-form notes the dispatcher reads as context for ambiguous classifications
 ```
 
-Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt` / `size_lt`, `phase`, and `all` / `any` for combinations. Actions include `delete`, `route` (with `to:`), `route_sensitive`, `ask`, and `skip`. Full schema and validation rules live in `skills/sort/OVERRIDES.md`.
+Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt` / `size_lt`, `phase`, and `all` / `any` for combinations. Actions include `delete`, `route` (with `to:`), `route_sensitive` (optionally with `category:`), `ask`, `skip`, and `prompt` (with a natural-language `prompt:` handed off to the `sort-route-by-prompt` agent). Full schema and validation rules live in `skills/sort/OVERRIDES.md`.
 
 ### Authoring and debugging
 
@@ -96,7 +122,8 @@ Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt
 
 ```
 plugins/sort/
-  .claude-plugin/plugin.json   manifest
+  .claude-plugin/plugin.json   Claude Code manifest
+  .codex-plugin/plugin.json    Codex manifest
   skills/
     sort/                      top-level dispatcher
       SKILL.md
@@ -110,6 +137,7 @@ plugins/sort/
     match-rules.rb             rule-audit / debug tool
     extract-frames.sh          ffmpeg wrapper for sort-videos OCR
   agents/
-    video-ocr.md               OCR subagent definition
+    video-ocr.md               OCR subagent for sort-videos
+    sort-route-by-prompt.md    routing subagent for action: prompt rules
   changelog/                   per-change notes
 ```

@@ -1,8 +1,8 @@
 {
     "name": "tal",
-    "description": "Common plugin for git workflows, PR feedback, and CI troubleshooting. Includes commands for atomic commits, PR feedback management, and CI failure analysis.",
+    "description": "Tal's personal helper plugin — atomic and quick commit commands, PR review feedback fetching and inline thread replies, App Store Connect / TestFlight tooling, and partial-commit line staging.",
     "author": {
-        "name": "AI DevX Team",
+        "name": "Tal Atlas",
         "email": "me@tal.by"
     }
 }

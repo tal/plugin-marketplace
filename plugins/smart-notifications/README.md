@@ -1,6 +1,20 @@
-# OSX Notifications Plugin
+# smart-notifications
 
 Desktop notifications for Claude Code events on macOS using `terminal-notifier`.
+
+## Install
+
+Claude Code:
+
+```
+/plugin install smart-notifications@tal-marketplace
+```
+
+Codex:
+
+```
+codex plugin install smart-notifications@tal-marketplace
+```
 
 ## Features
 
@@ -8,11 +22,13 @@ Desktop notifications for Claude Code events on macOS using `terminal-notifier`.
 
 The plugin automatically detects your terminal or IDE and activates it when you click on a notification. Supported applications include:
 
-- **Terminals**: iTerm2, Warp, Ghostty, Apple Terminal, Alacritty, Kitty, Hyper
+- **Terminals**: iTerm2, Warp, Apple Terminal, Alacritty, Kitty, Hyper
 - **IDEs**: VSCode, Cursor, JetBrains IDEs (IntelliJ, etc.)
-- **Multiplexers**: tmux (traces back to find the underlying terminal)
+- **Multiplexers**: tmux (detects the terminal the active tmux client is attached to, and on click jumps back to the exact session/window/pane that produced the notification)
 
 When a notification is clicked, your terminal/IDE window is automatically brought to the front.
+
+Ghostty is intentionally skipped — it has its own built-in notification handling, so the plugin does not emit notifications when running under Ghostty.
 
 ### Context-Aware Notifications
 

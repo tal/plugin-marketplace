@@ -24,7 +24,16 @@ For example:
 /plugin install smart-notifications@tal-marketplace
 ```
 
-Available plugins: `tal`, `smart-notifications`, `plan-refiner`, `karabiner`, `sort`.
+## Plugins
+
+Each plugin has its own README with the full feature/command/skill inventory — follow the links for details.
+
+- **[tal](./plugins/tal/README.md)** — common plugin with git workflows, PR feedback fetching, and CI troubleshooting helpers.
+- **[smart-notifications](./plugins/smart-notifications/README.md)** — macOS desktop notifications for agent events (Stop, SubagentStop, Notification) with terminal activation support.
+- **[plan-refiner](./plugins/plan-refiner/README.md)** — refine plans and specs through in-depth interviews driven by strategic questioning.
+- **[karabiner](./plugins/karabiner/README.md)** — skills for configuring and writing Karabiner-Elements rules on macOS.
+- **[sort](./plugins/sort/README.md)** — sort and process files in any folder; dispatchers for videos (transcription/OCR), images, documents, archives, and installers.
+- **[iconifier](./plugins/iconifier/README.md)** — generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent. macOS only.
 
 ### Manual configuration
 

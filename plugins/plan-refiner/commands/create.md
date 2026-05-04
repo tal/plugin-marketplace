@@ -1,5 +1,5 @@
 ---
-name: plan
+name: create
 description: Create an implementation plan through deep, in-depth interviewing
 argument-hint: [file-path-or-description]
 allowed-tools:
