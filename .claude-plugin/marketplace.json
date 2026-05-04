@@ -32,6 +32,11 @@
       "name": "sort",
       "source": "./plugins/sort",
       "description": "Sort downloaded files into ~/Downloads/AI Library/ — dispatches by type (videos, images, archives, DMGs, apps) and delegates videos to a full transcription pipeline"
+    },
+    {
+      "name": "iconifier",
+      "source": "./plugins/iconifier",
+      "description": "Generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent"
     }
   ]
 }

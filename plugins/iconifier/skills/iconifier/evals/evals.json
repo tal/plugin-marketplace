@@ -1,0 +1,26 @@
+{
+  "skill_name": "iconifier",
+  "evals": [
+    {
+      "id": 1,
+      "name": "code-projects-no-existing-icons",
+      "prompt": "I'm in /tmp/iconifier-eval/projects which has three subfolders — acme-api (a Node.js REST service), beacon-cli (a Rust CLI tool), and design-mockups (a folder of Figma export PNGs). None of them have icons yet. Iconify the subfolders. I haven't set any image-gen API keys.",
+      "expected_output": "Skill bails-fast on non-Darwin (n/a here), resolves the three subfolders, detects style=none, detects ai-available=no, picks SF Symbols (technical context, no AI key), generates one symbol per folder using the contents to pick (e.g. chevron-slash for acme-api, terminal for beacon-cli, paintbrush for design-mockups), writes the proposals to a workspace, opens an HTML preview with three cards, three enabled checkboxes, and waits for selection.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "mixed-some-already-iconified",
+      "prompt": "Iconify the subfolders of /tmp/iconifier-eval/downloads. Two of them already have emoji-style custom icons. The other three don't. Match the existing style.",
+      "expected_output": "Skill detects emoji style from the two iconified folders (style-detection script returns dominant_style=emoji), generates emoji-on-folder for all five (including the already-iconified two so the preview shows a proposal), the preview's checkboxes are disabled for the two that already have icons, enabled for the three that don't.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "ambiguous-folder-asks-user",
+      "prompt": "Iconify the subfolders of /tmp/iconifier-eval/archive. There's a folder called 'misc-2019' with five totally unrelated files in it — a PDF tax form, a photo, a .zip of who-knows-what, an .epub, and a CSV.",
+      "expected_output": "Skill correctly identifies that 'misc-2019' is genuinely ambiguous (no dominant content type, opaque name) and uses AskUserQuestion with 2-3 plausible interpretations. For the other folders in the directory, it doesn't ask — it picks based on content/name. Final preview reflects the user's chosen interpretation for misc-2019.",
+      "files": []
+    }
+  ]
+}

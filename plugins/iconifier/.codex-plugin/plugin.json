@@ -1,0 +1,44 @@
+{
+  "name": "iconifier",
+  "description": "Generate and apply custom macOS folder icons for subfolders, matching the style of any icons on peers.",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/iconifier",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "icons",
+    "folder-icons",
+    "macos",
+    "darwin",
+    "finder",
+    "iconify",
+    "emoji",
+    "sf-symbols",
+    "image-generation"
+  ],
+  "platforms": ["darwin"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Iconifier",
+    "shortDescription": "Custom macOS folder icons that match your existing style.",
+    "longDescription": "Reads peer-folder icons to infer the style, generates a per-folder icon (emoji, SF Symbol, or AI), previews in the browser, applies via NSWorkspace.",
+    "developerName": "Tal",
+    "category": "Utilities",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Automation"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/iconifier",
+    "defaultPrompt": [
+      "Iconify the subfolders of this directory.",
+      "Give my ~/Projects folders matching SF Symbol icons.",
+      "Replace the icon on the acme-co folder with something cleaner."
+    ],
+    "brandColor": "#3B82F6"
+  }
+}

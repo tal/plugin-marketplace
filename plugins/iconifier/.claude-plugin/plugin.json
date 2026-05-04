@@ -1,0 +1,22 @@
+{
+  "name": "iconifier",
+  "description": "Generate and apply custom macOS folder icons. Triggers on any 'give these folders icons' / 'iconify my downloads' / 'make my project folders look nicer' request — the skill inspects a directory's subfolders, infers the right style by reading any existing custom icons on peers and the parent (emoji-on-folder, SF Symbol, AI illustration), gathers context from each folder's contents and siblings, and proposes a per-folder icon. Generation falls back gracefully — uses gpt-image-1 / imagen if an API key is present in the environment or a `.env` file, otherwise just emoji or SF Symbol composited onto Apple's GenericFolderIcon. Always shows an HTML preview before touching the filesystem and applies icons via NSWorkspace.setIcon. macOS only — bails immediately on non-Darwin systems.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal Atlas",
+    "email": "swimming.bird@gmail.com"
+  },
+  "keywords": [
+    "icons",
+    "folder-icons",
+    "macos",
+    "darwin",
+    "finder",
+    "iconify",
+    "customize",
+    "emoji",
+    "sf-symbols",
+    "image-generation"
+  ],
+  "platforms": ["darwin"]
+}
