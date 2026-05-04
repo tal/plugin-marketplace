@@ -100,6 +100,71 @@ curl -s -H "Authorization: Bearer $TOKEN" \
   'https://api.appstoreconnect.apple.com/v1/betaTesters?filter%5Bapps%5D=<APPLE_ID>&limit=50'
 ```
 
+### Attach a Build to a Beta Group
+
+After `--upload-package` succeeds, the build needs a few seconds to a few minutes to appear in `/v1/builds`. Once it does, attach it to an **external** beta group with:
+
+```bash
+curl -s -w "\n%{http_code}" -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://api.appstoreconnect.apple.com/v1/betaGroups/<GROUP_ID>/relationships/builds" \
+  -d "{\"data\":[{\"type\":\"builds\",\"id\":\"<BUILD_ID>\"}]}"
+```
+
+Success returns HTTP 204 with empty body. Reverse direction (`/v1/builds/<id>/relationships/betaGroups`) accepts CREATE/DELETE but **not GET** — there is no way to query "what groups is this build in?" directly. To verify, list the group's builds:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://api.appstoreconnect.apple.com/v1/betaGroups/<GROUP_ID>/builds?sort=-uploadedDate&limit=3'
+```
+
+#### Internal groups reject per-build attachment
+
+Internal beta groups (`isInternalGroup: true`) cannot be assigned to specific builds — every valid build is automatically distributed to members based on their App Store Connect role. Attempting to POST returns:
+
+```
+422 ENTITY_UNPROCESSABLE
+"Cannot add internal group to a build."
+```
+
+Filter internal groups out before iterating, or treat 422 with that title as a no-op:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://api.appstoreconnect.apple.com/v1/betaGroups?filter%5Bapp%5D=<APPLE_ID>' \
+  | jq '.data[] | select(.attributes.isInternalGroup == false) | {id: .id, name: .attributes.name}'
+```
+
+#### External groups still need beta review to distribute
+
+Attaching a build to an external group takes effect immediately on the relationship side, but Apple won't actually push the build to testers until the build's `betaAppReviewSubmission` is approved. Check status with:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://api.appstoreconnect.apple.com/v1/betaAppReviewSubmissions?filter%5Bbuild%5D=<BUILD_ID>'
+```
+
+### Polling for a Just-Uploaded Build
+
+`--upload-package` returns a `Delivery UUID` immediately, but the build entity in `/v1/builds` lags by anywhere from ~30 s to ~30 min. Poll by version filter — the JWT expires after ~20 min so re-mint inside the loop:
+
+```bash
+mint_token() {
+  xcrun altool --generate-jwt --api-key "$KEY_ID" --api-issuer "$ISSUER" --p8-file-path "$P8" 2>&1 | grep '^ey'
+}
+
+BUILD_ID=""
+for i in $(seq 1 90); do
+  TOKEN=$(mint_token)
+  BUILD_ID=$(curl -s -H "Authorization: Bearer $TOKEN" \
+    "https://api.appstoreconnect.apple.com/v1/builds?filter%5Bapp%5D=$APP_ID&filter%5Bversion%5D=$TARGET_VERSION&limit=1" \
+    | jq -r '.data[0].id // empty')
+  [ -n "$BUILD_ID" ] && break
+  sleep 30
+done
+```
+
 ## Selecting Fields
 
 Reduce response size by specifying only the fields needed:
@@ -124,3 +189,23 @@ NEXT=$(echo "$RESPONSE" | jq -r '.links.next // empty')
 All endpoints use: `https://api.appstoreconnect.apple.com/v1/`
 
 Full API documentation: https://developer.apple.com/documentation/appstoreconnectapi
+
+## Common Pitfalls
+
+### Don't name a bash array `GROUPS`
+
+`GROUPS` is a built-in read-only bash array containing the current user's Unix group IDs. Assignments to it are silently ignored (no error even under `set -u`), so a script like:
+
+```bash
+GROUPS=(
+  "uuid-1|Group One"
+  "uuid-2|Group Two"
+)
+echo "${#GROUPS[@]}"   # prints 15 (or whatever, your group count), not 2
+```
+
+…will iterate over numeric Unix group IDs (`20`, `12`, `61`, …) and produce confusing 404s on the API. Use any other name (`BETA_GROUPS`, `GROUP_LIST`, etc.).
+
+### Filter brackets must be URL-encoded
+
+Bare `filter[app]=…` makes curl fail with `bad range`. Always `filter%5Bapp%5D=…`.
