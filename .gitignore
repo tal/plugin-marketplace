@@ -12,6 +12,9 @@ Thumbs.db
 # Claude Code local state
 .claude/settings.local.json
 *.local.md
+# Plugin-runtime lifecycle markers (written when a plugin loses its parent
+# marketplace or source — never useful inside this monorepo).
+.orphaned_at
 
 # Node (if plugins use npm dependencies)
 node_modules/
