@@ -35,12 +35,17 @@ See the [marketplace README](../../README.md) for adding the marketplace itself.
 
 - `/tal:pr:address-feedback` — Fetch unresolved, non-outdated review threads on a PR and walk through addressing each one. Auto-detects the PR from the current branch, or accepts `[pr-number | pr-url | comment-url]`. Delegates fetching to the `get-pr-feedback` skill (falling back to its script directly if the skill doesn't auto-activate), builds a TodoWrite plan, and edits files thread-by-thread.
 
+### Handoff
+
+- `/tal:handoff` (also reachable as `/handoff` when there's no namespace conflict) — Invoke the `handoff` skill to compact the current conversation into a handoff document at a `mktemp -t handoff-XXXXXX.md` path. Optional argument: a one-liner describing the next session's focus. The skill is marked `disable-model-invocation: true`, so it never fires on its own — this command is the only way in.
+
 ## Skills
 
 - **`get-pr-feedback`** — Fires when the user mentions PR feedback, review comments, "what did reviewers say", or pastes a `#discussion_r…` URL. Wraps `gh api` (GraphQL) in `skills/get-pr-feedback/get-pr-comments.sh` to return review threads as structured JSON with accurate resolved/outdated status — something `gh pr view` can't surface. Supports `-a` (actionable only), `-f` (include `diff_hunk`), `-o` (oldest-first), `-v` (verbose). Auto-spills to `/tmp/pr-comments-…json` when output exceeds 25 KB so large PRs don't get truncated by the Bash tool's 30 KB cap.
 - **`pr-thread-reply`** — Fires when the user asks to reply to an inline PR review comment or pastes a comment URL with a reply message. Native `gh pr comment` only posts top-level PR comments; this skill posts threaded replies to inline review comments via `gh api` (`skills/pr-thread-reply/reply-pr-thread.sh`). Accepts a comment URL plus message, or `--comment-id` / `--pr` / `--repo` flags, or runs interactively. Marked `disable-model-invocation: true` — invoke it deliberately, not automatically.
 - **`appstore-connect`** — Fires for App Store Connect, `altool`, TestFlight uploads, IPA validation, ASC REST API, JWT generation, asset pack management, etc. Reference-only (no scripts) — covers `xcrun altool` authentication (API key vs. password), the full command table (`--upload-package`, `--validate-app`, `--build-status`, `--list-apps`, `--list-providers`, `--generate-jwt`, `--app-store-text`, asset-pack commands), and ASC REST API workarounds for endpoints altool doesn't expose (TestFlight builds, beta groups, review status). Detailed reference files in `skills/appstore-connect/references/`.
 - **`git-partial-commit`** — Fires when the user wants to stage specific lines or hunks rather than whole files (splitting mixed changes into atomic commits). Wraps `git apply --cached` against a user-supplied unified diff via `skills/git/partial-commit/stage-lines.sh`. Used internally by `/tal:git:commit:atomic` to handle files that contain changes for multiple features.
+- **`handoff`** — Compacts the current conversation into a handoff document so a fresh agent can pick up the work. Writes the doc to a `mktemp -t handoff-XXXXXX.md` path, suggests skills the next session should reach for, and references existing artifacts (PRDs, plans, ADRs, issues, commits, diffs) by path/URL rather than restating them. Optional argument: a one-liner describing what the next session will focus on. Marked `disable-model-invocation: true` — invoke explicitly via `/tal:handoff` (or `/handoff`); it will never auto-fire from the description. Adapted from [mattpocock/skills](https://github.com/mattpocock/skills/blob/733d312884b3878a9a9cff693c5886943753a741/skills/in-progress/handoff/SKILL.md).
 
 ## Requirements
 
@@ -76,11 +81,13 @@ plugins/tal/
       quick.md                  /tal:git:commit:quick
     pr/
       address-feedback.md       /tal:pr:address-feedback
+    handoff.md                  /tal:handoff (also /handoff)
   skills/
     get-pr-feedback/            PR review-thread fetcher
     pr-thread-reply/            Inline-comment reply poster
     appstore-connect/           xcrun altool + ASC REST API reference
       references/
     git/partial-commit/         Stage exact lines/hunks via git apply --cached
+    handoff/                    Conversation handoff document writer
   commands.md                   Long-form command docs (predates this README)
 ```
