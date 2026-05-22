@@ -1,0 +1,42 @@
+{
+  "name": "og-simplify",
+  "description": "Resurrected /simplify: reviews changed code for reuse, quality, and efficiency via three parallel agents, then fixes what they find.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/og-simplify",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "simplify",
+    "code-review",
+    "cleanup",
+    "refactor",
+    "code-quality",
+    "reuse",
+    "efficiency",
+    "diff"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OG Simplify",
+    "shortDescription": "Review and clean up your changed code, then fix it.",
+    "longDescription": "Launches three parallel agents — reuse, quality, efficiency — over your git diff, aggregates findings, and applies the fixes.",
+    "developerName": "Tal",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/og-simplify",
+    "defaultPrompt": [
+      "Clean up the code I just changed.",
+      "Review my diff for reuse, quality, and efficiency and fix what you find.",
+      "Run a high-effort cleanup pass on my changes."
+    ],
+    "brandColor": "#8B5CF6"
+  }
+}

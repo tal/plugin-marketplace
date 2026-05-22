@@ -75,6 +75,18 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Utilities"
+    },
+    {
+      "name": "og-simplify",
+      "source": {
+        "source": "local",
+        "path": "./plugins/og-simplify"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
     }
   ]
 }

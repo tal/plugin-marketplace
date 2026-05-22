@@ -41,6 +41,7 @@ Each plugin has its own README with the full feature/command/skill inventory —
 - **[karabiner](./plugins/karabiner/README.md)** — skills for configuring and writing Karabiner-Elements rules on macOS.
 - **[sort](./plugins/sort/README.md)** — sort and process files in any folder; dispatchers for videos (transcription/OCR), images, documents, archives, and installers.
 - **[iconifier](./plugins/iconifier/README.md)** — generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent. macOS only.
+- **[og-simplify](./plugins/og-simplify/README.md)** — the resurrected /simplify: a three-agent (reuse/quality/efficiency) review-and-fix pass over your changed code.
 
 ### Manual configuration
 

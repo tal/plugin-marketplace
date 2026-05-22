@@ -37,6 +37,11 @@
       "name": "iconifier",
       "source": "./plugins/iconifier",
       "description": "Generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent"
+    },
+    {
+      "name": "og-simplify",
+      "source": "./plugins/og-simplify",
+      "description": "Resurrected /simplify — three-agent (reuse/quality/efficiency) review-and-fix pass over your changed code."
     }
   ]
 }

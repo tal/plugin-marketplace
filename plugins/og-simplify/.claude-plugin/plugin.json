@@ -1,0 +1,20 @@
+{
+  "name": "og-simplify",
+  "description": "Resurrected /simplify: reviews changed code for reuse, quality, and efficiency via three parallel agents, then fixes what they find.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal Atlas",
+    "email": "me@tal.by"
+  },
+  "keywords": [
+    "simplify",
+    "code-review",
+    "cleanup",
+    "refactor",
+    "code-quality",
+    "reuse",
+    "efficiency",
+    "diff"
+  ],
+  "skills": "./skills/"
+}
