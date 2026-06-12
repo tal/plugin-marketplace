@@ -122,6 +122,47 @@ Rationale: Users needed a faster alternative to the atomic commit workflow for s
 
 ---
 
+### `/tal:git:commit:staged`
+
+**Description:** Quickly commit only the changes already in the staging area, with a well-formatted commit message. The staged-only sibling of `quick` — same speed, but it never touches your unstaged work.
+
+**Usage:**
+```bash
+# Interactive mode (will ask for details if needed)
+/tal:git:commit:staged
+
+# Specify type and scope
+/tal:git:commit:staged fix parser
+
+# Include rationale
+/tal:git:commit:staged fix parser Handle empty input without crashing
+```
+
+**Features:**
+- Commits **only staged changes** — never runs `git add`, unstaged work stays untouched
+- Stops immediately if nothing is staged (and points you at `/tal:git:commit:quick`)
+- Fast analysis using the Sonnet model
+- Maintains conventional commit format with bullets and rationale
+- Stops immediately if any git command fails
+
+**Arguments:**
+- `[type]` - (Optional) Commit type (feat, fix, refactor, docs, test, chore, style, perf)
+- `[scope]` - (Optional) Component/module affected
+- `[rationale]` - (Optional) Rationale for the change
+
+**When to Use:**
+- You've hand-picked exactly what belongs in the commit via `git add` / `git add -p`
+- You want to commit part of your working tree and keep iterating on the rest
+- After using the `git-partial-commit` skill to stage specific hunks
+
+**When to Use Quick Instead:**
+- All changes in the working tree belong in one commit
+- You don't want to think about the staging area at all
+
+**See Also:** [commands/git/commit/staged.md](./commands/git/commit/staged.md) for detailed implementation instructions
+
+---
+
 ### Skills: `git-branches`
 
 This skill is **MANDATORY** and automatically invoked before any git diff/log commands. It detects the correct base branch in stacked branch workflows.

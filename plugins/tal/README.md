@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers git commits (atomic and quick), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
 
 ## Install
 
@@ -30,6 +30,7 @@ See the [marketplace README](../../README.md) for adding the marketplace itself.
 
 - `/tal:git:commit:atomic` — Group uncommitted changes into multiple focused commits, one per logical feature. Runs an Assessment → Build Commit List → Add and Commit pass, includes related implementation/tests/docs in the same commit, and uses the `git-partial-commit` skill to split mixed-feature files. Optional args: `[feature-name] [rationale]` to scope to a single feature. Reach for it when a working tree has accumulated unrelated changes that should land as separate commits.
 - `/tal:git:commit:quick` — Stage everything (`git add -A`) and write one commit with a conventional-commit-formatted message. Runs on `sonnet`, restricts itself to `git add` / `git commit` / `git log` so it doesn't wander, and asks for rationale via AskUserQuestion if not obvious from context. Optional args: `[type] [scope] [rationale]`. Reach for it when all changes belong together and you want a fast commit.
+- `/tal:git:commit:staged` — Same fast-path workflow as `quick`, but commits **only what's already staged** — it never runs `git add`, leaves unstaged changes untouched, and stops if the index is empty. Runs on `sonnet`, restricts itself to `git commit` / `git log`, and asks for rationale via AskUserQuestion if not obvious from context. Optional args: `[type] [scope] [rationale]`. Reach for it when you've hand-picked your staging area and just want it committed.
 
 ### PRs
 
@@ -61,6 +62,7 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 
 - `commands/git/commit/atomic.md` — Full three-phase atomic commit instructions, including the partial-staging integration and the conventional-commit message template.
 - `commands/git/commit/quick.md` — The fast-path commit command, with the inline `git status` / `git diff` slash-bang context blocks.
+- `commands/git/commit/staged.md` — The staged-only sibling of `quick.md`: identical flow, but no `git add` and only the `git diff --staged` context block.
 - `commands/pr/address-feedback.md` — End-to-end PR-feedback workflow with pre-flight checks and skill-fallback logic.
 - `skills/get-pr-feedback/get-pr-comments.sh` — The GraphQL-backed comment-fetching script. Worth reading if you want to consume the JSON output programmatically (or pipe through `jq` filters).
 - `skills/pr-thread-reply/reply-pr-thread.sh` — REST-API-based inline-reply poster, with URL parsing and comment-ID extraction.
@@ -79,6 +81,7 @@ plugins/tal/
     git/commit/
       atomic.md                 /tal:git:commit:atomic
       quick.md                  /tal:git:commit:quick
+      staged.md                 /tal:git:commit:staged
     pr/
       address-feedback.md       /tal:pr:address-feedback
     handoff.md                  /tal:handoff (also /handoff)
