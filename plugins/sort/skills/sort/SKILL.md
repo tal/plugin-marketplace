@@ -119,6 +119,8 @@ Map each item to a type bucket:
 | `.pkg` | `installer` |
 | `.app` (directory) | `app-bundle` |
 | `.pdf .doc .docx .txt .md .rtf .epub` | `document` |
+| `.webloc .url` link file, or pasted text containing an `instagram.com/p/` or `/reel/` URL | `instagram-link` |
+| 3+ loose images sharing an Instagram-shortcode stem (`<code>_1.jpg … <code>_5.jpg`) or a folder named after a shortcode | `image-carousel` |
 | anything else | `unknown` |
 
 ## 2. Dispatch by type
@@ -132,6 +134,19 @@ For every `video` item, invoke the `sort-videos` skill via the Skill tool, passi
 `sort-videos` declares `context: fork` in its frontmatter, so each invocation runs in its own forked subagent. The dispatcher's context only sees the skill's reply, not the transcription / OCR / summary working details. No need to spawn an Agent manually — the fork happens at skill invocation.
 
 If there are many videos, invoke sort-videos once per path (or pass a glob if that fits the user's request).
+
+### Instagram carousels & link files → delegate to `/sort-images`
+
+Two buckets route here, both via the Skill tool to the `sort-images` skill (same plugin):
+
+- **`instagram-link`** — a `.webloc`/`.url` shortcut file or pasted text holding an `instagram.com/p/<shortcode>/` (or `/reel/`) URL. Pass the URL as the argument; `sort-images` downloads the slides with gallery-dl, OCRs them, and files them under `<target>/AI Library/`.
+- **`image-carousel`** — a group of already-downloaded slides (a shortcode-named folder, or 3+ loose images sharing a `<shortcode>_N` stem). Pass the folder or glob; `sort-images` OCRs them in place and files them under `<target>/AI Library/`.
+
+Don't re-implement download/OCR/summarization here — `sort-images` owns that pipeline end-to-end and lands its artifacts (the renamed slides plus a companion `.md`) in a topic subfolder of `<target>/AI Library/`, exactly like the other pipelines. Like `/sort-videos`, it declares `context: fork`, so each invocation runs in its own subagent and only the reply returns to the dispatcher.
+
+If gallery-dl turns out to be missing and the user declines installing it, `sort-images` reports the carousel as skipped — surface that in the §5 summary rather than retrying here.
+
+Note: a **single loose image** is not a carousel — it stays in the `image` bucket below. Only grouped slides / Instagram links come here.
 
 ### Images
 
@@ -289,8 +304,8 @@ Print a summary table:
 | File | Type | Destination | Action | Rule |
 |---|---|---|---|---|
 
-- `Type` — `video`, `image`, `archive`, `disk-image`, `installer`, `app-bundle`, `document`, `unknown`
-- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive(<Category>)` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows. For sensitive items, `<Category>` is one of `Credentials | Identity | Financial | Medical | Legal | Other` and tells the user which subfolder of `<sensitive_dir>/` it landed in.
+- `Type` — `video`, `image`, `image-carousel`, `instagram-link`, `archive`, `disk-image`, `installer`, `app-bundle`, `document`, `unknown`
+- `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos` or `/sort-images`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive(<Category>)` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows. For sensitive items, `<Category>` is one of `Credentials | Identity | Financial | Medical | Legal | Other` and tells the user which subfolder of `<sensitive_dir>/` it landed in.
 - `Rule` — when a §0.5 user rule fired, show `<file>:<index>` (e.g. `~/.claude/sort.local.md:1`); blank when defaults applied
 
 Also list:

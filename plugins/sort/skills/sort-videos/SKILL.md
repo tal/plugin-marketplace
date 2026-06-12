@@ -1,6 +1,6 @@
 ---
 name: sort-videos
-description: Transcribe, summarize, and categorize downloaded videos — defaults to the folder Claude Code was launched in. Trigger on `/sort-videos`, when the user references a video file (yt-dlp output, Instagram reels, TikTok, YouTube downloads, conference talks, lectures), or asks to "transcribe this video", "summarize this talk", "make notes from this reel", "save this talk for listening later", "what's in this video", or "reprocess a video" — even when they don't say "sort". Transcribes with whisper-cpp, optionally OCRs frames for on-screen text, enriches from Instagram oEmbed captions, detects talks/lectures for an extended summary format, exports a tagged MP3 for talks, renames with a content-derived slug, moves into `<target>/AI Library/<topic>/` (created if absent), and writes a companion `.md` summary. Pass a file path or glob to reprocess a specific video.
+description: Transcribe, summarize, and categorize downloaded videos — defaults to the folder Claude Code was launched in. Trigger on `/sort-videos`, when the user references a video file (yt-dlp output, Instagram reels, TikTok, YouTube downloads, conference talks, lectures), or asks to "transcribe this video", "summarize this talk", "make notes from this reel", "save this talk for listening later", "what's in this video", or "reprocess a video" — even when they don't say "sort". Transcribes with whisper-cpp, optionally OCRs frames for on-screen text, enriches from Instagram oEmbed captions, detects talks/lectures for an extended summary format, exports a tagged MP3 for talks, renames with a content-derived slug, moves into `<target>/AI Library/<topic>/` (created if absent), and writes a companion `.md` summary with YAML frontmatter (source URL, creator, tags, description). Pass a file path or glob to reprocess a specific video.
 user-invocable: true
 context: fork
 allowed-tools:
@@ -160,7 +160,43 @@ For videos classified as `talk-or-lecture` in step 4: pick a subject folder when
 - Keep the video in its current location and folder — do not move or rename it unless the user explicitly asks to re-categorize.
 - Overwrite the existing `.md` file with fresh content.
 
-**In both cases**, create a matching `.md` file with the same base name. The structure depends on the classification from step 4:
+**In both cases**, create a matching `.md` file with the same base name.
+
+**Every `.md` file starts with a YAML frontmatter block** populated from the data gathered in steps 1-5:
+
+```yaml
+---
+source_url: https://www.instagram.com/reel/<VIDEO_ID>/
+platform: Instagram
+creator: louishowardpt
+video_id: DVs_UEwiIx9
+type: short-form
+topic: Cooking
+tags: [cooking, recipe, sesame-chicken]
+description: Quick sesame chicken recipe with a 3-ingredient sauce.
+processing: [transcript, ocr-text, caption-enrichment]
+retrieved_sources: [https://www.instagram.com/api/v1/oembed/?url=https://www.instagram.com/reel/DVs_UEwiIx9/]
+processed: 2026-06-11
+---
+```
+
+Field rules:
+
+- `source_url` — reconstruct the original link from the platform prefix and video ID in the filename: Instagram → `https://www.instagram.com/reel/<ID>/`, YouTube → `https://www.youtube.com/watch?v=<ID>`, TikTok → `https://www.tiktok.com/@<creator>/video/<ID>`. If the platform or ID is unknown and the link can't be reconstructed, omit the field rather than guessing.
+- `platform` — the platform prefix from the filename (`Instagram`, `TikTok`, `Youtube`, …).
+- `creator` — the creator's username/handle from the filename (e.g., the `louishowardpt` in `Video by louishowardpt`), without any `@` prefix. For Instagram this is the account username; prefer the handle from the oEmbed response (step 3) if it differs from the filename.
+- `video_id` — the `[XXX]` ID from the filename, without brackets. Omit if there is none.
+- `type` — the classification from step 4: `short-form` or `talk-or-lecture`.
+- `topic` — the topic folder chosen in step 5, exactly as named on disk.
+- `tags` — 3-7 lowercase hyphenated keywords derived from the content (transcription, caption, OCR). Specific enough to search on later (`sesame-chicken`, not just `food`), inline-array syntax.
+- `description` — one sentence (≤ 150 chars) summarizing the video. This can double as the source for the renamed file's brief-description slug.
+- `processing` — inline array of every processing step actually performed on this video, drawn from: `transcript` (whisper-cpp succeeded), `ocr-text` (step 2, text-only mode), `ocr-products` (step 2, text + product ID mode), `caption-enrichment` (step 3 oEmbed caption was fetched AND used), `mp3-export` (step 7 produced an MP3). List only what really happened — if OCR was declined or the oEmbed call failed, the entry doesn't appear. A skipped/blank-audio video that still gets an `.md` would have `processing: []`.
+- `retrieved_sources` — inline array of the URLs of every website/API actually fetched to augment the summary (the step 3 oEmbed endpoint, plus anything else retrieved — a recipe page, a speaker's site, a conference page). List the exact URLs requested, only for fetches that succeeded and contributed content. Omit the field entirely (or use `[]`) when nothing was retrieved. Note this is *fetched* sources, not links merely mentioned in the video — those belong in the body's `## References` section.
+- `processed` — today's date, `YYYY-MM-DD`.
+
+On re-runs, regenerate the frontmatter along with the body — but keep the original `processed` date if the existing `.md` has one, since the file's history lives in the processing log (step 8).
+
+**Below the frontmatter**, the body structure depends on the classification from step 4:
 
 **For `short-form` videos:**
 
@@ -214,13 +250,39 @@ For videos classified as `talk-or-lecture`, also export a tagged MP3 alongside t
   - `comment` — the TL;DR text from the markdown, trimmed to a single line
 - If ffmpeg fails (e.g., corrupt audio), log the failure and continue with the rest of the pipeline — the markdown summary is still the primary output.
 
-## 8. Parallel processing
+## 8. Append to the processing log
+
+After a video is fully processed (moved, markdown written, and MP3 exported for talks), record it in the **prepend-only processing log** that lives at the root of the AI Library:
+
+```
+<target>/AI Library/_processing-log.md
+```
+
+The log is **prepend-only**: new entries go on top (newest first), and past entries are **never edited or removed** — not even on re-runs. Re-processing a video that's already in the library adds a *new* entry noting it's a reprocess, leaving the original entry intact. The leading underscore keeps the file out of the topic-folder candidate list from step 5.
+
+Build a compact markdown entry, then prepend it with the bundled script (entry text on stdin):
+
+```bash
+printf '## %s — %s\n- **Type:** %s\n- **Topic:** %s\n- **Source:** %s\n- **Path:** %s\n- **Summary:** %s\n' \
+  "$(date '+%Y-%m-%d %H:%M')" \
+  "<final filename>" \
+  "<short-form|talk-or-lecture>" \
+  "<topic folder>" \
+  "<platform> [<video ID>]" \
+  "AI Library/<topic>/<final filename>" \
+  "<one-line summary>" \
+| bash "${CLAUDE_PLUGIN_ROOT}/scripts/log-video.sh" "<target>/AI Library/_processing-log.md"
+```
+
+For re-runs, append ` (reprocess)` to the `Type` field so the history is self-explanatory. If a video was skipped (blank audio, error), still log it with the reason in `Summary` and `skipped` as the `Type` — the log is a complete record of everything the skill has touched.
+
+## 9. Parallel processing
 
 - Convert all videos to WAV in parallel (background ffmpeg jobs).
 - Transcribe all videos in parallel (separate bash calls or subagents).
 - MP3 exports for talks/lectures can also run in parallel once classification is complete.
 
-## 9. Report
+## 10. Report
 
 When finished, print a summary table of all videos processed:
 

@@ -31,14 +31,16 @@ See the [marketplace README](../../README.md) for adding the marketplace itself.
 | Command | What it does |
 |---|---|
 | `/sort` | Top-level dispatcher. Scans the current working directory (and `<cwd>/Recents/` if it exists), classifies each item, and routes it. Pass a path or glob to limit the run, or to sort a different folder than CWD. |
-| `/sort-videos` | Video pipeline. Transcribes with whisper-cpp, OCRs frames when relevant, detects talks/lectures for an extended-summary format, exports a tagged MP3 for talks, renames, moves, and writes a companion `.md` summary. Invoked automatically by `/sort` for video files; can be called directly on a single file. |
+| `/sort-videos` | Video pipeline. Transcribes with whisper-cpp, OCRs frames when relevant, detects talks/lectures for an extended-summary format, exports a tagged MP3 for talks, renames, moves, and writes a companion `.md` summary with YAML frontmatter (source URL, platform, creator username, tags, one-line description, processing steps performed). Invoked automatically by `/sort` for video files; can be called directly on a single file. |
+| `/sort-images` | Instagram image-carousel pipeline. Downloads every slide with gallery-dl, OCRs them in order via a vision agent, enriches from the post caption, renames with a content-derived slug, files the slides under `<target>/AI Library/<topic>/`, and writes a companion `.md` summary. Accepts a carousel URL, a `.webloc`/`.url` link file, or a folder/glob of already-downloaded slides. Invoked automatically by `/sort` for Instagram links and grouped slides; can be called directly. |
 | `/sort:add-rule` | Interactive command for adding a rule to your sort config (`sort.md` or `sort.local.md`). |
 
-Both skills run with `context: fork` — they execute in an isolated subagent so per-file working details (transcripts, extracted PDF text, agent classifications) don't bloat the parent conversation.
+All three processing skills run with `context: fork` — they execute in an isolated subagent so per-file working details (transcripts, extracted PDF text, agent classifications) don't bloat the parent conversation.
 
 ## Pipelines (inside `/sort`)
 
 - **Videos** → delegated to `/sort-videos`
+- **Instagram carousels** (a pasted `instagram.com/p/…` link, a `.webloc`/`.url` shortcut, or a group of downloaded slides) → delegated to `/sort-images` — slides downloaded with gallery-dl, OCR'd in order by a vision agent, summarized into a companion `.md`
 - **Images** → screenshot/meme/photo detection, then a vision agent for topic tagging
 - **Archives** (`.zip`, `.tar.gz`, etc.) → peeked; routed as app installer, image group, or single-document depending on contents
 - **Disk images** (`.dmg`, `.iso`) → mounted, app-bundle-ID checked against `/Applications/`; auto-deleted if already installed
@@ -120,6 +122,7 @@ Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt
 | `poppler` (`pdftotext`, `pdftoppm`) | PDF classification + scanned-PDF vision fallback | `brew install poppler` |
 | `pandoc` | `.epub` → plaintext | `brew install pandoc` |
 | `whisper-cpp` | Video transcription | `brew install whisper-cpp` |
+| `gallery-dl` | Downloading Instagram carousel slides for `/sort-images` (auto-installed on first run if missing) | `brew install gallery-dl` |
 | `yt-dlp` | (Not used by sort itself, but commonly produces the videos `/sort-videos` processes) | `brew install yt-dlp` |
 
 `/sort` soft-fails on missing tools — degrades pipelines per-bucket and reports what's reduced rather than aborting.
@@ -136,14 +139,17 @@ plugins/sort/
       documents.md             doc sub-dispatcher (read on demand)
       OVERRIDES.md             rule schema reference
     sort-videos/               video pipeline
+    sort-images/               Instagram image-carousel pipeline
   commands/
     add-rule.md                /sort:add-rule
   scripts/
     add-rule.rb                rule-append helper
     match-rules.rb             rule-audit / debug tool
     extract-frames.sh          ffmpeg wrapper for sort-videos OCR
+    log-video.sh               prepend helper for the AI Library processing log
   agents/
     video-ocr.md               OCR subagent for sort-videos
+    carousel-ocr.md            OCR subagent for sort-images
     sort-route-by-prompt.md    routing subagent for action: prompt rules
   changelog/                   per-change notes
 ```

@@ -16,6 +16,9 @@
     "transcribe",
     "ocr",
     "whisper",
+    "gallery-dl",
+    "instagram",
+    "carousel",
     "downloads",
     "documents"
   ],
