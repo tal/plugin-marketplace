@@ -31,7 +31,7 @@ See the [marketplace README](../../README.md) for adding the marketplace itself.
 | Command | What it does |
 |---|---|
 | `/sort` | Top-level dispatcher. Scans the current working directory (and `<cwd>/Recents/` if it exists), classifies each item, and routes it. Pass a path or glob to limit the run, or to sort a different folder than CWD. |
-| `/sort-videos` | Video pipeline. Transcribes with whisper-cpp, OCRs frames when relevant, detects talks/lectures for an extended-summary format, exports a tagged MP3 for talks, renames, moves, and writes a companion `.md` summary with YAML frontmatter (source URL, platform, creator username, tags, one-line description, processing steps performed). Invoked automatically by `/sort` for video files; can be called directly on a single file. |
+| `/sort-videos` | Video pipeline. Transcribes with whisper-cpp, OCRs frames when relevant, detects talks/lectures for an extended-summary format, exports a tagged MP3 for talks, renames, moves, and writes a companion `.md` summary with YAML frontmatter (source URL, platform, creator username, tags, one-line description, processing steps performed). Invoked automatically by `/sort` for video files; can be called directly on a single file. Can also write a Paprika-importable `.paprikarecipe` sidecar for recipe notes — opt-in via `paprika_sidecar: enabled` in a user rules file. |
 | `/sort-images` | Instagram image-carousel pipeline. Downloads every slide with gallery-dl, OCRs them in order via a vision agent, enriches from the post caption, renames with a content-derived slug, files the slides under `<target>/AI Library/<topic>/`, and writes a companion `.md` summary. Accepts a carousel URL, a `.webloc`/`.url` link file, or a folder/glob of already-downloaded slides. Invoked automatically by `/sort` for Instagram links and grouped slides; can be called directly. |
 | `/sort:add-rule` | Interactive command for adding a rule to your sort config (`sort.md` or `sort.local.md`). |
 
@@ -147,6 +147,7 @@ plugins/sort/
     match-rules.rb             rule-audit / debug tool
     extract-frames.sh          ffmpeg wrapper for sort-videos OCR
     log-video.sh               prepend helper for the AI Library processing log
+    make_paprikarecipe.py      Paprika .paprikarecipe sidecar writer for sort-videos recipe notes
   agents/
     video-ocr.md               OCR subagent for sort-videos
     carousel-ocr.md            OCR subagent for sort-images

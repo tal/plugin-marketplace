@@ -44,6 +44,25 @@ Find video files at the root of the target folder and in `<target>/Recents/` if 
 
 Create `<target>/AI Library/` if it doesn't exist before moving anything: `mkdir -p "<target>/AI Library"`.
 
+## 0.5. Load user rules and conventions (optional)
+
+Before processing, check for the same user override files the `/sort` dispatcher reads. This step is **optional and best-effort**: if none of these files exist, skip it entirely and proceed normally. Read **every** file that exists and combine them, in this priority order (highest first):
+
+1. `$PWD/.claude/sort.local.md` — project-local (gitignored)
+2. `$PWD/.claude/sort.md` — project-shared (committable)
+3. `~/.claude/sort.local.md` — user-global (gitignored)
+4. `~/.claude/sort.md` — user-shared
+
+Parse the YAML frontmatter with `yq` if installed, otherwise the bundled `${CLAUDE_PLUGIN_ROOT}/scripts/match-rules.rb --rules-only`, which merges all four files in priority order. The free-form markdown body **below** each file's frontmatter is user context — read it too. For the rule schema and matcher/action lists, see `${CLAUDE_PLUGIN_ROOT}/skills/sort/OVERRIDES.md`.
+
+Apply whatever is relevant to the video pipeline; ignore the rest:
+
+- **`route` / `prompt` rules** whose matcher fires on a video's filename (`ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_*`) pin that video to the rule's destination folder — honor it in place of the step 5 categorization. A `delete` rule (e.g. on a `.torrent`) means skip the video; a `skip` rule leaves the file untouched.
+- **Free-form body context and per-topic conventions** inform steps 5 and 6. For example, a user can document how a given topic's notes should be tagged (e.g. a recipe tagging vocabulary), and you apply it when writing that note's frontmatter `tags`.
+- **`paprika_sidecar` opt-in (frontmatter key).** If a merged override file sets the top-level frontmatter key `paprika_sidecar: enabled`, the Paprika export sub-step in §6.5 is turned on for recipe notes. It is **off** unless this key is explicitly present and set to `enabled` — never emit sidecars otherwise. Any other value (or absence) means disabled.
+
+User rules and documented conventions take precedence over this skill's defaults. When nothing matches, fall back to the normal flow.
+
 For each video found, do the following:
 
 ## 1. Transcribe
@@ -135,6 +154,8 @@ Do NOT ask when the classification is obvious (a 2-minute Instagram reel, or a c
 
 Based on the transcription (and OCR / caption enrichment, if collected), determine the best topic folder under `<target>/AI Library/`.
 
+**If a user rule from §0.5 already pins this video to a folder** (a matching `route`/`prompt` rule), use that destination and skip the discovery below.
+
 **Discover existing folders at runtime — never hardcode topic names.** Each folder builds up its own taxonomy across runs, and a folder list that ships with the skill would be wrong for everyone:
 
 ```bash
@@ -188,7 +209,7 @@ Field rules:
 - `video_id` — the `[XXX]` ID from the filename, without brackets. Omit if there is none.
 - `type` — the classification from step 4: `short-form` or `talk-or-lecture`.
 - `topic` — the topic folder chosen in step 5, exactly as named on disk.
-- `tags` — 3-7 lowercase hyphenated keywords derived from the content (transcription, caption, OCR). Specific enough to search on later (`sesame-chicken`, not just `food`), inline-array syntax.
+- `tags` — 3-7 lowercase hyphenated keywords derived from the content (transcription, caption, OCR). Specific enough to search on later (`sesame-chicken`, not just `food`), inline-array syntax. **If §0.5 surfaced a tagging convention for this topic** (e.g. a recipe tag vocabulary), follow it — its vocabulary and tag count take precedence over this generic guidance. When updating an existing note, merge new tags into the current `tags` array rather than dropping any.
 - `description` — one sentence (≤ 150 chars) summarizing the video. This can double as the source for the renamed file's brief-description slug.
 - `processing` — inline array of every processing step actually performed on this video, drawn from: `transcript` (whisper-cpp succeeded), `ocr-text` (step 2, text-only mode), `ocr-products` (step 2, text + product ID mode), `caption-enrichment` (step 3 oEmbed caption was fetched AND used), `mp3-export` (step 7 produced an MP3). List only what really happened — if OCR was declined or the oEmbed call failed, the entry doesn't appear. A skipped/blank-audio video that still gets an `.md` would have `processing: []`.
 - `retrieved_sources` — inline array of the URLs of every website/API actually fetched to augment the summary (the step 3 oEmbed endpoint, plus anything else retrieved — a recipe page, a speaker's site, a conference page). List the exact URLs requested, only for fetches that succeeded and contributed content. Omit the field entirely (or use `[]`) when nothing was retrieved. Note this is *fetched* sources, not links merely mentioned in the video — those belong in the body's `## References` section.
@@ -220,6 +241,30 @@ On re-runs, regenerate the frontmatter along with the body — but keep the orig
   - If OCR was performed, an `## On-Screen Text` section with the extracted visual content (slide text is especially valuable for talks)
 
 Do not dump the raw transcript in the talk/lecture format — the extended summary replaces it.
+
+## 6.5. Paprika recipe sidecar (optional, opt-in)
+
+**Skip this step entirely unless §0.5 found `paprika_sidecar: enabled` in a merged override file.** It is off by default; only run it when the user has explicitly opted in.
+
+When enabled, and only for notes that are actually recipes (a recipe note has ingredient + instruction content — the kind of thing tagged with meal-type tags like `dinner`/`snack`/`dessert`), emit a Paprika-importable `.paprikarecipe` sidecar next to the `.md` note so the recipe can be one-click imported into Paprika Recipe Manager.
+
+Build a JSON payload from the recipe content you already extracted for the note (steps 1-3), then pipe it to the bundled script:
+
+```bash
+echo '<payload JSON>' | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/make_paprikarecipe.py" -
+```
+
+Payload fields (only `note_path` is required; omit anything you don't have):
+
+- `note_path` — absolute path to the `.md` note just written. The sidecar is written beside it as `<base>.paprikarecipe`, the uid is derived deterministically from the base name (stable across re-runs — re-importing the same file won't create a second copy under Paprika cloud sync), and categories default to `AI Library` + the meal-type tags from the note's frontmatter.
+- `name` — recipe title (Title Case, e.g. `Banana Almond Cookie Dough Bark`), not the filename slug.
+- `ingredients` — newline-separated, one item per line; blank lines allowed to separate sub-sections (e.g. `Sauce:` headers).
+- `directions` — newline-separated numbered steps (`1. …\n2. …`).
+- `description`, `notes`, `source` (creator handle), `source_url`, `prep_time`, `cook_time`, `total_time`, `servings` — fill from the note when known, else omit.
+- `is_reconstructed` — set `true` if the full recipe was reconstructed/adapted rather than taken verbatim from the source; this adds a `Reconstructed` category.
+- `photo_path` — optional. If omitted, the script auto-extracts the **first frame** of the sibling `.mp4` (via `ffmpeg`) and embeds it as the recipe photo.
+
+The script is pure standard library (no `pip install` needed) and idempotent: re-running preserves the original `created` timestamp and overwrites in place. Report the sidecar in step 10 only when one was written.
 
 ## 7. Audio export for talks and lectures
 
