@@ -1,0 +1,43 @@
+{
+  "name": "spotify-web-api",
+  "description": "Spotify Web API guidance: OAuth flows, endpoint and scope tables, quota-mode limits, rate limiting, and working auth examples.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/spotify-web-api",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "spotify",
+    "spotify-web-api",
+    "oauth",
+    "pkce",
+    "rest-api",
+    "playlists",
+    "playback",
+    "music",
+    "scopes",
+    "rate-limits"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Spotify Web API",
+    "shortDescription": "Spotify Web API reference: auth, endpoints, scopes, quotas.",
+    "longDescription": "OAuth flows, every endpoint with its required scope, development vs extended quota limits, and runnable curl and Express examples.",
+    "developerName": "Tal",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/spotify-web-api",
+    "defaultPrompt": [
+      "Implement the Spotify Authorization Code + PKCE flow.",
+      "Which OAuth scopes do I need to read and modify a user's playlists?",
+      "Why is this Spotify endpoint returning 404 in development mode?"
+    ],
+    "brandColor": "#1DB954"
+  }
+}

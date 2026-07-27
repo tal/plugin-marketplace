@@ -1,0 +1,22 @@
+{
+  "name": "spotify-web-api",
+  "description": "Spotify Web API guidance: OAuth flows, endpoint and scope tables, quota-mode limits, rate limiting, and working auth examples.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal Atlas",
+    "email": "me@tal.by"
+  },
+  "keywords": [
+    "spotify",
+    "spotify-web-api",
+    "oauth",
+    "pkce",
+    "rest-api",
+    "playlists",
+    "playback",
+    "music",
+    "scopes",
+    "rate-limits"
+  ],
+  "skills": "./skills/"
+}

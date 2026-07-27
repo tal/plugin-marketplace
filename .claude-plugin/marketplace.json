@@ -42,6 +42,11 @@
       "name": "og-simplify",
       "source": "./plugins/og-simplify",
       "description": "Resurrected /simplify — three-agent (reuse/quality/efficiency) review-and-fix pass over your changed code."
+    },
+    {
+      "name": "spotify-web-api",
+      "source": "./plugins/spotify-web-api",
+      "description": "Spotify Web API reference — OAuth flows, endpoint and scope tables, quota-mode limits, rate limiting, and working auth examples"
     }
   ]
 }

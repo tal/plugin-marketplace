@@ -42,6 +42,7 @@ Each plugin has its own README with the full feature/command/skill inventory —
 - **[sort](./plugins/sort/README.md)** — sort and process files in any folder; dispatchers for videos (transcription/OCR), images, documents, archives, and installers.
 - **[iconifier](./plugins/iconifier/README.md)** — generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent. macOS only.
 - **[og-simplify](./plugins/og-simplify/README.md)** — the resurrected /simplify: a three-agent (reuse/quality/efficiency) review-and-fix pass over your changed code.
+- **[spotify-web-api](./plugins/spotify-web-api/README.md)** — Spotify Web API reference skill: OAuth flows, endpoint and scope tables, development vs extended quota-mode limits, rate limiting, and working curl/Express auth examples.
 
 ### Manual configuration
 
