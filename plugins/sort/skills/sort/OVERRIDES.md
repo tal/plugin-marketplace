@@ -70,6 +70,7 @@ Anything below the closing `---` is loose markdown, surfaced to classification a
 |---|---|---|
 | `sources` | list of paths | Replaces the default scan target (the current working directory the user launched Claude in, plus `<cwd>/Recents/` if it exists). Common use: pin the skill to always sort `~/Downloads` regardless of where Claude was launched. Tilde expansion supported. |
 | `sensitive_dir` | path | Pre-answers the "where to file sensitive items?" prompt in `documents.md` §4. Tilde expansion supported. |
+| `audio_only_topics` | list of topic names | Topics whose videos get a tagged MP3 and **no transcript and no `.md` summary** — see `sort-videos` §0.6. Case-insensitive. Unlike the other keys this one has a non-empty **default of `[Comedy]`**; set it to `[]` to transcribe and summarize comedy like everything else. Replaces the default rather than adding to it. |
 | `rules` | list of rule objects | See below. Concatenated across files in priority order. |
 
 ## Rule shape

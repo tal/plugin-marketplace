@@ -5,7 +5,19 @@ argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save it to a path produced by `mktemp -t handoff-XXXXXX.md` (read the file before you write to it).
+Write a handoff document summarising the current conversation so a fresh agent can continue the work.
+
+Create the file with:
+
+```bash
+t=$(mktemp "${TMPDIR:-/tmp}/handoff-XXXXXX") && mv "$t" "$t.md" && echo "$t.md"
+```
+
+Write to the path that prints (read the file before you write to it).
+
+The rename is required, not decorative: `mktemp` only substitutes `X`s that are *trailing*, and BSD/macOS `mktemp -t` treats its argument as a bare prefix. Both `mktemp -t handoff-XXXXXX.md` and `mktemp .../handoff-XXXXXX.md` produce a file with a literal `XXXXXX` in the name and no `.md` extension.
+
+Report the full path back to the user in your final message so they can find the document later.
 
 Suggest the skills to be used, if any, by the next session.
 
