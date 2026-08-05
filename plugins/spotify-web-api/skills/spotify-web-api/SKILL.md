@@ -226,6 +226,8 @@ GET /artists/{id}
 
 `/playlists/{id}/items` is the path for reading and mutating playlist contents (`GET`, `POST` to add, `PUT` to reorder or replace, `DELETE` to remove). A maximum of 100 items may be sent in one add or remove request — split larger sets into sequential batches. The request-body samples (`uris`/`position` to add, an `items` array to remove, `range_start`/`range_length`/`insert_before` to reorder, plus the optional `snapshot_id` for conflict-safe edits) are in the "Playlists" section of `references/endpoints-complete.md`. Create playlists with `POST /me/playlists`.
 
+Spotify-generated playlists backed by algorithmic data can return `null`. Treat `null` as an expected result and guard it before accessing playlist fields.
+
 **Old patterns:** `/playlists/{id}/tracks` is the deprecated predecessor of `/playlists/{id}/items`, and its `DELETE` body used a `tracks` array where `/items` uses `items`. It is unavailable to Development Mode apps and still functional for Extended Quota Mode apps; new integrations should use `/items`. On the playlist object the same rename applies: `tracks` → `items`, `tracks.tracks` → `items.items`, `tracks.tracks.track` → `items.items.item`.
 
 ## Spotify URIs and IDs
