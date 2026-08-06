@@ -2,6 +2,7 @@
 argument-hint: [feature-name] [rationale]
 description: Create atomic commits by grouping related changes into separate, focused commits
 context: fork
+background: false
 ---
 
 # Atomic Commit Creator
