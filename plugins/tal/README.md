@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
 
 ## Install
 
@@ -25,6 +25,10 @@ codex plugin install tal@tal-marketplace
 See the [marketplace README](../../README.md) for adding the marketplace itself.
 
 ## Commands
+
+### Explanations
+
+- `/tal:eli5 <topic>` — Explain a topic for someone with no prior knowledge as an HTML artifact with big pictures and few words.
 
 ### Git
 
@@ -62,6 +66,7 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 
 ## Files of interest
 
+- `commands/eli5.md` — `/tal:eli5` prompt for producing a simple, visual HTML explanation of a topic.
 - `commands/git/commit/atomic.md` — Full three-phase atomic commit instructions, including the partial-staging integration and the conventional-commit message template.
 - `commands/git/commit/quick.md` — The fast-path commit command, with the inline `git status` / `git diff` slash-bang context blocks.
 - `commands/git/commit/staged.md` — The staged-only sibling of `quick.md`: identical flow, but no `git add` and only the `git diff --staged` context block.
@@ -80,6 +85,7 @@ plugins/tal/
   .claude-plugin/plugin.json    Claude Code manifest
   .codex-plugin/plugin.json     Codex manifest
   commands/
+    eli5.md                     /tal:eli5
     git/commit/
       atomic.md                 /tal:git:commit:atomic
       quick.md                  /tal:git:commit:quick
