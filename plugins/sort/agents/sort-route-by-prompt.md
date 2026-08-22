@@ -14,6 +14,7 @@ The dispatcher's invocation will include:
 - **`file`** — absolute path to the file being routed.
 - **`target`** — the run's target folder (e.g. `~/Downloads`). The `AI Library/` tree lives directly under this.
 - **`topics`** — list of existing topic folders already under `<target>/AI Library/`. Reuse one of these whenever the file fits.
+- **`rename`** *(optional)* — a natural-language naming convention from the rule's `rename:` field. When present, you must also propose a new basename for the file (see "Renaming" below). When absent, never propose one.
 - **`note`** *(optional)* — the rule's note, if any. Treat as supplementary context, not a directive.
 
 ## How to work
@@ -34,6 +35,13 @@ route_sensitive: <category>
 delete
 skip
 fallthrough
+```
+
+When a `rename` input is present and your decision is `route:` / `route_sensitive`, append the proposed basename as a second clause on the **same line**, separated by ` | `:
+
+```
+route: <path> | rename: <basename>
+route_sensitive: <category> | rename: <basename>
 ```
 
 Path conventions for `route:`:
@@ -57,10 +65,21 @@ Action semantics:
 - **`skip`** — leave the file untouched. Use when the user's prompt indicates this file shouldn't be moved.
 - **`fallthrough`** — let the default `/sort` pipeline classify this file. Use when the user's prompt doesn't actually apply here.
 
+## Renaming
+
+Only when a `rename` input is present. Treat it the same way you treat `prompt`: it is a spec written in the user's words, and your job is to fill it in from what you actually read in the file.
+
+- **Read the values out of the document, not the filename.** A portal export called `doc_38271.pdf` still has the service date and document type printed inside it. The existing filename is the weakest source; use it only as a tiebreaker.
+- **Emit a bare basename with no extension.** The dispatcher reattaches the original extension. `mulcare 2026-03 superbill`, not `mulcare 2026-03 superbill.pdf` and not `/some/path/mulcare 2026-03 superbill`.
+- **No path separators, no leading dot, no control characters.** The dispatcher sanitizes defensively and falls back to the original name if what you send can't be made safe, so a malformed basename silently costs the user their rename.
+- **Follow the convention's literal formatting** — separators, capitalization, and zero-padding included. If the spec says `<2 digit month>`, March is `03`, not `3`.
+- **Omit the rename clause when you genuinely can't fill the spec.** If the document doesn't show a date, or its type isn't one the convention enumerates, route it without a `rename:` clause rather than guessing. Keeping the original filename is recoverable; a confidently wrong date is not.
+- **Never rename on `delete` / `skip` / `fallthrough`.** Those forms take no rename clause.
+
 ## Constraints
 
-- **One line out.** The dispatcher parses your reply with a strict regex. A second line, a code fence, or any commentary will be treated as a malformed reply and the file will be sent to `ask` instead.
+- **One line out.** The dispatcher parses your reply with a strict regex. A second line, a code fence, or any commentary will be treated as a malformed reply and the file will be sent to `ask` instead. The optional ` | rename: <basename>` clause is part of that same single line.
 - **Don't move the file yourself.** The dispatcher does the move. You only decide.
 - **AskUserQuestion is a last resort.** You have access to it, but the dispatcher already batches uncertain files into a single `ask` action at the end of the run — interrupting mid-route trains the user to mash through prompts. Use it only when (a) the user's prompt explicitly tells you to ask, or (b) the file plausibly fits *two or more* of the prompt's named buckets and picking the wrong one would meaningfully harm the user (e.g. routing a tax return into a generic Receipts/ pile, or routing a credentials file into a non-sensitive folder). For routine ambiguity — the prompt doesn't really cover this file, or you're picking between two near-equivalent topic folders — reply `fallthrough` instead. One AskUserQuestion call max per invocation; never ask more than one question.
-- **Don't modify, rename, or write to the file.** Read-only inspection.
+- **Don't modify or write to the file.** Read-only inspection. You never rename anything on disk either — a `rename:` clause is a *proposal*; the dispatcher performs the move and the rename together.
 - **No deletion without authorization.** If the user's prompt doesn't explicitly say "delete X", don't reply `delete` — pick `skip` or `fallthrough` instead.

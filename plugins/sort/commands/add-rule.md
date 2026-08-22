@@ -97,6 +97,18 @@ options:
 
 If the user picks "Hand to an agent with custom instructions", ask a plain-text follow-up for the prompt itself — natural-language routing instructions the agent will apply when this rule fires (e.g. "Decide if this PDF is a receipt, invoice, or contract and route accordingly. Fall through if it's none of those."). The prompt is required.
 
+Then — **only** for that agent action — offer renaming:
+
+```
+question: "Should matched files also be renamed to a naming convention?"
+header: "Rename"
+options:
+  - "No, keep original filenames (Recommended)"
+  - "Yes, rename them"
+```
+
+If yes, ask a plain-text follow-up for the convention, described in plain language with the variable parts spelled out (e.g. `roe <4-digit year>-<2-digit month> <superbill|invoice|receipt>`). The agent reads each file and fills it in; the dispatcher reattaches the original extension. Pass it as `--rename=`. Renaming only exists on `action: prompt` — filling in a convention requires reading the document, so there is no static-rule equivalent. If the user asked for renaming alongside a non-agent action, tell them the action has to become `prompt` for it to work, and confirm before switching.
+
 ### 4. Optional note
 
 Ask for a one-line note describing why this rule exists. Skippable.
@@ -113,10 +125,11 @@ ruby "${CLAUDE_PLUGIN_ROOT}/scripts/add-rule.rb" \
   "<to path or empty>" \
   --note="<note or empty>" \
   --prompt="<prompt text or empty>" \
+  --rename="<naming convention or empty>" \
   --category="<sensitive subcategory or empty>"
 ```
 
-`--prompt` is only required when `<action>` is `prompt`. `--category` is only meaningful when `<action>` is `route_sensitive` and is optional even there (omit to land in top-level `<sensitive_dir>/`). Omit any flag whose value is empty.
+`--prompt` is only required when `<action>` is `prompt`. `--rename` is only meaningful when `<action>` is `prompt`. `--category` is only meaningful when `<action>` is `route_sensitive` and is optional even there (omit to land in top-level `<sensitive_dir>/`). Omit any flag whose value is empty.
 
 The script:
 - Creates the file with a default template if it doesn't exist
@@ -132,7 +145,7 @@ Show the user:
 
 ## Argument shorthand (optional)
 
-If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `prompt`, `category`, `note`. Anything missing falls back to the interactive flow.
+If `$ARGUMENTS` is non-empty, parse `key=value` pairs to skip prompts where possible. Supported keys: `file`, `ext`, `glob`, `regex`, `phase`, `action`, `to`, `prompt`, `rename`, `category`, `note`. Anything missing falls back to the interactive flow.
 
 Example:
 

@@ -80,6 +80,7 @@ prompt: <rule.prompt verbatim>
 file:   <absolute path>
 target: <run target folder>
 topics: <one folder per line, from `ls -1 "<target>/AI Library/"`>
+rename: <rule.rename if present, else omit>
 note:   <rule.note if present, else omit>
 ```
 
@@ -96,7 +97,24 @@ Apply the agent's reply the same way you'd apply a static rule of that action:
 
 If the reply is malformed (more than one line, doesn't match the allowed forms), log a warning and treat as `ask`.
 
-Batch parallelism: if multiple files match `action: prompt` rules, spawn the agents in parallel — they're independent. Show `prompt(<agent decision>)` in the §5 summary's `Action` column so the user can see the agent decided it.
+### Applying a `rename:` clause
+
+Only relevant when the rule set a `rename:` field and the agent's reply carries a trailing ` | rename: <basename>` clause on a `route:` / `route_sensitive` decision. Split the reply on the **first** ` | rename: ` — everything left of it is the routing decision (apply it exactly as above), everything right of it is the proposed basename.
+
+Sanitize the proposed basename before using it. Move and rename in **one** operation — never move first and rename after, or a crash mid-run leaves the file misfiled under a name nothing matches.
+
+1. Strip surrounding whitespace and any wrapping quotes.
+2. Strip path separators (`/`, `\`) and control characters; collapse runs of whitespace to a single space.
+3. Strip leading dots so the result can't become a hidden file.
+4. Strip a trailing extension if the agent included one anyway (case-insensitive match against the file's own extension) — the original extension is always reattached, and is never taken from the agent.
+5. Reattach the **original** file's extension verbatim, preserving its case and any multi-part form (`.tar.gz` stays `.tar.gz`).
+6. If what's left before the extension is empty, or the sanitized name exceeds 200 bytes, **discard the rename** and keep the original filename. Log one line saying the rename was rejected; still perform the move.
+
+Collision handling is unchanged: if the destination name already exists, append `-2`, `-3`, … before the extension. Never overwrite silently.
+
+An agent that omits the rename clause is not an error — it means the document didn't carry enough information to fill the convention. Move the file under its original name and move on.
+
+Batch parallelism: if multiple files match `action: prompt` rules, spawn the agents in parallel — they're independent. Show `prompt(<agent decision>)` in the §5 summary's `Action` column so the user can see the agent decided it. When a rename was applied, append the new filename to the §5 `Destination` cell — the `File` column still holds the original name, and that pairing is the user's only chance to catch a bad rename.
 
 Soft-fail behavior:
 - No rule files present → continue with defaults silently.
@@ -306,6 +324,7 @@ Print a summary table:
 
 - `Type` — `video`, `image`, `image-carousel`, `instagram-link`, `archive`, `disk-image`, `installer`, `app-bundle`, `document`, `unknown`
 - `Action` — `moved`, `extracted`, `delegated` (to `/sort-videos` or `/sort-images`), `deleted` (installer-dedup or `action: delete` rule), `mounted+moved`, `classified` / `classified-sensitive(<Category>)` / `review` / `error` (from `documents.md`), `prompt(<agent decision>)` (an `action: prompt` rule fired and the agent's chosen action is in parens), or `skipped`. For images, append `(vision)` when the §Images §b vision/OCR pass produced the routing, or `(fallback)` when §c heuristics were used because no vision tool was reachable — the user wants to spot-check fallback rows. For sensitive items, `<Category>` is one of `Credentials | Identity | Financial | Medical | Legal | Other` and tells the user which subfolder of `<sensitive_dir>/` it landed in.
+- `Destination` — the folder the file landed in. If a `rename:` rule changed the filename (§0.5), write the destination as `<folder>/<new name>` so the new name sits next to the original in the `File` column. Renames are the one thing a user can't spot by browsing the destination folder afterward, so never collapse the two into just the folder.
 - `Rule` — when a §0.5 user rule fired, show `<file>:<index>` (e.g. `~/.claude/sort.local.md:1`); blank when defaults applied
 
 Also list:

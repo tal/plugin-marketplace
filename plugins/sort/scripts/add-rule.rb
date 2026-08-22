@@ -4,13 +4,14 @@
 # add-rule.rb — append a rule to a sort config file
 #
 # Usage:
-#   add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>] [--category=<name>]
+#   add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>] [--category=<name>] [--rename=<text>]
 #
 # Examples:
 #   add-rule.rb ~/.claude/sort.local.md '{ext: [.torrent, .nzb]}' delete '' --note="auto-delete torrents"
 #   add-rule.rb ~/.claude/sort.md '{filename_glob: "Invoice-*.pdf"}' route 'AI Library/Invoices/'
 #   add-rule.rb ~/.claude/sort.md '{ext: [.pdf]}' prompt '' --prompt="Decide if this is a receipt, invoice, or contract."
 #   add-rule.rb ~/.claude/sort.local.md '{filename_regex: "(?i)recovery"}' route_sensitive '' --category=credentials
+#   add-rule.rb ~/.claude/sort.md '{ext: [.pdf]}' prompt '' --prompt="Route Dr. Roe billing." --rename="roe <year>-<month> <type>"
 #
 # - Creates the target file with a default template if it doesn't exist.
 # - Parses existing YAML frontmatter, appends to rules:, writes back.
@@ -29,7 +30,7 @@ def expand(path)
 end
 
 usage = <<~USAGE
-  Usage: add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>] [--category=<name>]
+  Usage: add-rule.rb <file> <match-yaml-inline> <action> [target] [--note=<text>] [--prompt=<text>] [--category=<name>] [--rename=<text>]
 USAGE
 
 # Parse args
@@ -41,6 +42,7 @@ target = ""
 note = nil
 prompt = nil
 category = nil
+rename = nil
 ARGV.each do |arg|
   if arg.start_with?("--note=")
     note = arg.sub("--note=", "")
@@ -48,6 +50,8 @@ ARGV.each do |arg|
     prompt = arg.sub("--prompt=", "")
   elsif arg.start_with?("--category=")
     category = arg.sub("--category=", "")
+  elsif arg.start_with?("--rename=")
+    rename = arg.sub("--rename=", "")
   else
     target = arg
   end
@@ -62,6 +66,11 @@ end
 
 if action == "prompt" && prompt.to_s.strip.empty?
   die("action 'prompt' requires --prompt=<text>")
+end
+
+if rename && !rename.to_s.strip.empty? && action != "prompt"
+  warn "add-rule.rb: --rename is only meaningful with action 'prompt' (filling a naming convention requires reading the file); ignoring."
+  rename = nil
 end
 
 canonical_categories = %w[credentials identity financial medical legal other]
@@ -138,6 +147,7 @@ front["rules"] ||= []
 rule = { "match" => match, "action" => action }
 rule["to"] = target unless target.to_s.empty?
 rule["prompt"] = prompt if prompt && !prompt.to_s.empty?
+rule["rename"] = rename if rename && !rename.to_s.empty?
 rule["category"] = category if category && !category.to_s.empty?
 rule["note"] = note if note
 

@@ -75,13 +75,14 @@ Anything below the closing `---` is loose markdown, surfaced to classification a
 
 ## Rule shape
 
-Every rule has a `match` block and an `action`. Optional `to` (for `action: route`), `prompt` (for `action: prompt`), `category` (for `action: route_sensitive`), and `note` (free text, shown in the §5 summary).
+Every rule has a `match` block and an `action`. Optional `to` (for `action: route`), `prompt` and `rename` (for `action: prompt`), `category` (for `action: route_sensitive`), and `note` (free text, shown in the §5 summary).
 
 ```yaml
 - match: { <matcher>: <value>, ... }
   action: <delete | route | route_sensitive | ask | skip | prompt>
   to: <path>          # only with action: route
   prompt: <string>    # only with action: prompt
+  rename: <string>    # only with action: prompt — see "Renaming" below
   category: <string>  # only with action: route_sensitive — see below
   note: <string>      # optional, surfaces in summary
 ```
@@ -152,6 +153,34 @@ Example — let an agent decide where mixed-content PDFs go:
 
 The agent's allowed responses are: `route: <path>`, `route_sensitive`, `delete`, `skip`, or `fallthrough` (let the default pipeline handle it). The dispatcher applies that decision the same way it would a static rule.
 
+### Renaming
+
+`rename:` is a **natural-language naming convention**, written the same way as `prompt:` — not a format string. It only works with `action: prompt`, because filling it in requires actually reading the document; there is no static-rule equivalent.
+
+```yaml
+- match:
+    all:
+      - ext: [.pdf]
+      - filename_regex: "(?i)(superbill|invoice|receipt)"
+  action: prompt
+  prompt: |
+    Route here only if the billing provider is Dr. Jane Roe. Otherwise fall through.
+  rename: |
+    roe <4-digit year>-<2-digit month> <superbill|invoice|receipt>
+```
+
+A file arriving as `stmt_88213.pdf` lands as `roe 2026-03 superbill.pdf`.
+
+How it behaves:
+
+- The agent reads the **document body** for the values, not the filename — portal exports are usually named nonsense.
+- The agent returns a bare basename; the dispatcher reattaches the **original extension** and does the move and rename as one operation. Extensions are never taken from the agent.
+- The basename is sanitized (path separators, control characters, leading dots, and over-long names are rejected). A name that can't be made safe is discarded and the original filename kept — the move still happens.
+- If the document doesn't carry enough information to fill the convention, the agent omits the rename and the file keeps its name. That's expected behavior, not a failure.
+- Collisions get the usual `-2`, `-3` suffix before the extension. Nothing is overwritten.
+
+Because renaming destroys the original filename, the §5 summary keeps the old name in `File` and shows the new one in `Destination`. Spot-check that column after a run that renames — a wrong date is silent otherwise.
+
 ## Validation
 
 The dispatcher soft-fails on bad config:
@@ -160,6 +189,7 @@ The dispatcher soft-fails on bad config:
 - Rule with unknown matcher or action key → one warning line with the rule index, skip that rule.
 - `to:` path on a non-`route` action → ignored.
 - `prompt:` on a non-`prompt` action → ignored.
+- `rename:` on a non-`prompt` action → ignored, warning logged (there's no static renamer; the field silently doing nothing would be worse).
 - `category:` on a non-`route_sensitive` action → ignored.
 - `category:` not in the canonical list (`credentials | identity | financial | medical | legal | other`) → warning logged, value passed through verbatim and Title-Cased so the user can also use ad-hoc subcategories if they want.
 - Missing `to:` on `action: route` → rule treated as `ask` and a warning logged.

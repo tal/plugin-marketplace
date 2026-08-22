@@ -186,6 +186,11 @@ def render_action(rule)
     snippet = "#{snippet[0, 77]}…" if snippet.length > 78
     parts << "→ #{snippet.inspect}"
   end
+  if rule["rename"]
+    convention = rule["rename"].to_s.gsub(/\s+/, " ").strip
+    convention = "#{convention[0, 47]}…" if convention.length > 48
+    parts << "rename→ #{convention.inspect}"
+  end
   parts << "  (#{rule["note"]})" if rule["note"]
   parts.join(" ")
 end

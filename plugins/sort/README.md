@@ -33,7 +33,7 @@ See the [marketplace README](../../README.md) for adding the marketplace itself.
 | `/sort` | Top-level dispatcher. Scans the current working directory (and `<cwd>/Recents/` if it exists), classifies each item, and routes it. Pass a path or glob to limit the run, or to sort a different folder than CWD. |
 | `/sort-videos` | Video pipeline. Transcribes with whisper-cpp, OCRs frames when relevant, detects talks/lectures for an extended-summary format, exports a tagged MP3 for talks, renames, moves, and writes a companion `.md` summary with YAML frontmatter (source URL, platform, creator username, tags, one-line description, processing steps performed). Invoked automatically by `/sort` for video files; can be called directly on a single file. **Audio-only topics** (default `Comedy`) skip transcription, OCR, and summarization entirely and just get a tagged MP3 beside the kept video — a transcript of a standup special is worthless and a written summary of jokes destroys them; configure with `audio_only_topics` in a user rules file. Can also write a Paprika-importable `.paprikarecipe` sidecar for recipe notes — opt-in via `paprika_sidecar: enabled` in a user rules file. |
 | `/sort-images` | Instagram image-carousel pipeline. Downloads every slide with gallery-dl, OCRs them in order via a vision agent, enriches from the post caption, renames with a content-derived slug, files the slides under `<target>/AI Library/<topic>/`, and writes a companion `.md` summary. Accepts a carousel URL, a `.webloc`/`.url` link file, or a folder/glob of already-downloaded slides. Invoked automatically by `/sort` for Instagram links and grouped slides; can be called directly. |
-| `/sort:add-rule` | Interactive command for adding a rule to your sort config (`sort.md` or `sort.local.md`). |
+| `/sort:add-rule` | Interactive command for adding a rule to your sort config (`sort.md` or `sort.local.md`), including agent-backed routing and optional content-derived renaming. |
 
 All three processing skills run with `context: fork` — they execute in an isolated subagent so per-file working details (transcripts, extracted PDF text, agent classifications) don't bloat the parent conversation.
 
@@ -63,7 +63,7 @@ Sensitive items land under `<sensitive_dir>/<Category>/` where `<Category>` is o
 
 Anything ending in `.local.md` should be in your gitignore; the bare `sort.md` files are the committable ones.
 
-To add or update a rule in any of these files, run **`/sort:add-rule`** — an interactive command that prompts for scope (which file), match type, action, and an optional note, then appends the rule. You don't have to hand-edit YAML.
+To add or update a rule in any of these files, run **`/sort:add-rule`** — an interactive command that prompts for scope (which file), match type, action, and an optional note, then appends the rule. Agent-backed `prompt` actions can also define a natural-language naming convention that the agent fills from the file's contents. You don't have to hand-edit YAML.
 
 ### How resolution works
 
@@ -102,16 +102,18 @@ rules:
       If it's a receipt or invoice, route to AI Library/Receipts/.
       If it's a tax document, route to AI Library/Taxes/.
       Otherwise fall through.
+    rename: |
+      <4-digit year>-<2-digit month> <receipt|invoice>
 ---
 
 # Free-form notes the dispatcher reads as context for ambiguous classifications
 ```
 
-Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt` / `size_lt`, `phase`, and `all` / `any` for combinations. Actions include `delete`, `route` (with `to:`), `route_sensitive` (optionally with `category:`), `ask`, `skip`, and `prompt` (with a natural-language `prompt:` handed off to the `sort-route-by-prompt` agent). Full schema and validation rules live in `skills/sort/OVERRIDES.md`.
+Matchers include `ext`, `filename_glob`, `filename_regex`, `mime_type`, `size_gt` / `size_lt`, `phase`, and `all` / `any` for combinations. Actions include `delete`, `route` (with `to:`), `route_sensitive` (optionally with `category:`), `ask`, `skip`, and `prompt` (with a natural-language `prompt:` handed off to the `sort-route-by-prompt` agent). A `prompt` rule may also carry a natural-language `rename:` convention; the agent proposes a basename from the document contents, while the dispatcher sanitizes it, preserves the original extension, and never overwrites an existing file. Full schema and validation rules live in `skills/sort/OVERRIDES.md`.
 
 ### Authoring and debugging
 
-- `/sort:add-rule` — interactive command that walks you through scope → match → action and appends to the file you pick.
+- `/sort:add-rule` — interactive command that walks you through scope → match → action, optionally collects a naming convention for `prompt` actions, and appends to the file you pick.
 - `scripts/match-rules.rb [-v] [--rules-only] [<file>...]` — show which rules apply to a given file, flagging the winner and any shadowed rules. Useful for catching ordering bugs (a broader rule above a more specific one).
 - Every rule that fires shows up in the §5 summary's `Rule` column as `<file>:<index>`, so misfires are auditable post hoc.
 
