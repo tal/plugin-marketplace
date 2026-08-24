@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
 
 ## Install
 
@@ -48,6 +48,7 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 
 ## Skills
 
+- **`unambiguous`** — Automatically applies when the user asks to clarify a document or passage, eliminate ambiguity, fix unclear pronouns, demonstratives, or antecedents, or disambiguate a sentence. It keeps already-clear references, makes the smallest necessary edits, reports material grammatical ambiguities, and avoids broader copyediting.
 - **`get-pr-feedback`** — Fires when the user mentions PR feedback, review comments, "what did reviewers say", or pastes a `#discussion_r…` URL. Wraps `gh api` (GraphQL) in `skills/get-pr-feedback/get-pr-comments.sh` to return review threads as structured JSON with accurate resolved/outdated status — something `gh pr view` can't surface. Supports `-a` (actionable only), `-f` (include `diff_hunk`), `-o` (oldest-first), `-v` (verbose). Auto-spills to `/tmp/pr-comments-…json` when output exceeds 25 KB so large PRs don't get truncated by the Bash tool's 30 KB cap.
 - **`pr-thread-reply`** — Fires when the user asks to reply to an inline PR review comment or pastes a comment URL with a reply message. Native `gh pr comment` only posts top-level PR comments; this skill posts threaded replies to inline review comments via `gh api` (`skills/pr-thread-reply/reply-pr-thread.sh`). Accepts a comment URL plus message, or `--comment-id` / `--pr` / `--repo` flags, or runs interactively. Marked `disable-model-invocation: true` — invoke it deliberately, not automatically.
 - **`appstore-connect`** — Fires for App Store Connect, `altool`, TestFlight uploads, IPA validation, ASC REST API, JWT generation, asset pack management, etc. Reference-only (no scripts) — covers `xcrun altool` authentication (API key vs. password), the full command table (`--upload-package`, `--validate-app`, `--build-status`, `--list-apps`, `--list-providers`, `--generate-jwt`, `--app-store-text`, asset-pack commands), and ASC REST API workarounds for endpoints altool doesn't expose (TestFlight builds, beta groups, review status). Detailed reference files in `skills/appstore-connect/references/`.
@@ -67,6 +68,7 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 ## Files of interest
 
 - `commands/eli5.md` — `/tal:eli5` prompt for producing a simple, visual HTML explanation of a topic.
+- `skills/unambiguous/SKILL.md` — Rewrite guidance and trigger metadata for eliminating ambiguous references and grammatical parses while preserving meaning and voice.
 - `commands/git/commit/atomic.md` — Full three-phase atomic commit instructions, including the partial-staging integration and the conventional-commit message template.
 - `commands/git/commit/quick.md` — The fast-path commit command, with the inline `git status` / `git diff` slash-bang context blocks.
 - `commands/git/commit/staged.md` — The staged-only sibling of `quick.md`: identical flow, but no `git add` and only the `git diff --staged` context block.
@@ -94,6 +96,7 @@ plugins/tal/
       address-feedback.md       /tal:pr:address-feedback
     handoff.md                  /tal:handoff (also /handoff)
   skills/
+    unambiguous/               Reference-clarity rewriting
     get-pr-feedback/            PR review-thread fetcher
     pr-thread-reply/            Inline-comment reply poster
     appstore-connect/           xcrun altool + ASC REST API reference
