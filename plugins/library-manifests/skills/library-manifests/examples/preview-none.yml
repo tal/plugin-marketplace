@@ -1,0 +1,3 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Reserved value (exact lowercase): keep the 📁 glyph even though the folder has a Finder icon.
+preview: none

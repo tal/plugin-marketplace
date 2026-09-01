@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Public, listed, custom title. `kind: collection` may be added but changes nothing —
+# the file's existence already turns a gallery-shaped directory into a category.
+title: Household Recipes

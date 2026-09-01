@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Placed in the LIBRARY ROOT: every node gets guard '' and `/` 303s to /_/unlock?folder=&next=%2F.
+visibility: protected
+password: "root-key-1"

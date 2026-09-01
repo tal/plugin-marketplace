@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Shapes that parse fine but do NOT do what they look like. The offending key is ignored, the folder
+# is scanned normally, and a warning is logged AND rendered in a <details> on the folder page.
+#
+# 1. "Public child of a protected parent" — stays protected, guarded by the parent.
+#    warning: "<path>: visibility 'public' would widen inherited 'protected' — ignored"
+visibility: public
+#
+# 2. "Relist a child of an unlisted parent" — stays unlisted (still shown INSIDE the parent's page).
+#    warning: "<path>: listing 'listed' would widen inherited 'unlisted' — ignored"
+listing: listed
+#
+# Other keys in the same file still apply — this title takes effect.
+title: Looks public, is not
+#
+# Also not a thing:
+# - `listing:` beside `visibility: hidden` (ignored silently)
+# - `kind: collection` as a way to change anything except the gallery rule
+# - `title:` on a hidden folder (never shown)
+# - `preview: None` (that is a filename; only lowercase `none` is reserved)

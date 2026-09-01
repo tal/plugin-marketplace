@@ -47,6 +47,11 @@
       "name": "spotify-web-api",
       "source": "./plugins/spotify-web-api",
       "description": "Spotify Web API reference — OAuth flows, endpoint and scope tables, quota-mode limits, rate limiting, and working auth examples"
+    },
+    {
+      "name": "library-manifests",
+      "source": "./plugins/library-manifests",
+      "description": "AI Library `.library.yml` folder-manifest reference — every key, inheritance and narrow-only rules, protected/hidden/unlisted semantics, static apps, card previews, failure modes"
     }
   ]
 }

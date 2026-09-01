@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Listed with a lock badge; every path under this folder prompts for the password.
+# One unlock covers this folder and everything below it for the session.
+visibility: protected
+password: "throwaway-unique-42"
+title: Household Invoices

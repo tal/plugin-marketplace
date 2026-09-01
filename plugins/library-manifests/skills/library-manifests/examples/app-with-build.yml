@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# `build` is bundled with Bun.build ONLY if this folder's library-relative path (on-disk spelling)
+# is in the server's TRUSTED_APPS env, e.g. TRUSTED_APPS=Apps/counter-app. Otherwise it is ignored
+# with a warning and the entry is served as-is. Trusting a folder means executing code from it.
+kind: app
+title: Counter
+app:
+  entry: app/index.html
+  build: app/src/main.ts

@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Card picture from a file INSIDE this folder: image, video or PDF; sub-directories are fine;
+# no leading '/', no '..', no segment starting with '.'. A malformed path hides the folder;
+# a missing file only warns and falls back to the macOS icon, then the glyph.
+preview: art/hero.png

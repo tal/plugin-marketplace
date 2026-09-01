@@ -1,0 +1,45 @@
+{
+  "name": "library-manifests",
+  "description": "AI Library `.library.yml` folder-manifest reference: every key, inheritance and narrow-only rules, access/listing semantics, apps, previews, failure modes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal",
+    "email": "me@tal.by",
+    "url": "https://github.com/tal"
+  },
+  "homepage": "https://github.com/tal/plugin-marketplace/tree/main/plugins/library-manifests",
+  "repository": "https://github.com/tal/plugin-marketplace",
+  "license": "UNLICENSED",
+  "keywords": [
+    "ai-library",
+    "library.yml",
+    "manifest",
+    "visibility",
+    "listing",
+    "protected",
+    "unlisted",
+    "hidden",
+    "static-app",
+    "preview",
+    "yaml",
+    "json-schema"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Library Manifests",
+    "shortDescription": "AI Library .library.yml folder-manifest reference.",
+    "longDescription": "Every .library.yml key, inheritance and narrow-only rules, protected/hidden/unlisted semantics, static apps, card previews, and failure modes.",
+    "developerName": "Tal",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/tal/plugin-marketplace/tree/main/plugins/library-manifests",
+    "defaultPrompt": [
+      "Write a .library.yml that password-protects this folder but keeps it listed.",
+      "Why is this folder 404ing after I added a .library.yml?",
+      "Make this folder link-only in the AI Library."
+    ],
+    "brandColor": "#B45309"
+  }
+}

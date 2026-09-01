@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# The folder ships a static app. Nothing under it is indexed as items; index.html is served at the
+# folder's URL with window.LIBRARY and <base href> injected. Files are served statically, dotfiles 404.
+kind: app
+title: Static App
+app:
+  entry: index.html

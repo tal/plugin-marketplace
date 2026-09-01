@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# "Here is the link, the password is X": absent from every index and from global search
+# even after unlocking; noindex/no-referrer headers on every route under it.
+visibility: protected
+password: "another-throwaway-9"
+listing: unlisted

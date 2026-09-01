@@ -1,0 +1,24 @@
+{
+  "name": "library-manifests",
+  "description": "AI Library `.library.yml` folder-manifest reference: every key, inheritance and narrow-only rules, access/listing semantics, apps, previews, failure modes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tal Atlas",
+    "email": "me@tal.by"
+  },
+  "keywords": [
+    "ai-library",
+    "library.yml",
+    "manifest",
+    "visibility",
+    "listing",
+    "protected",
+    "unlisted",
+    "hidden",
+    "static-app",
+    "preview",
+    "yaml",
+    "json-schema"
+  ],
+  "skills": "./skills/"
+}

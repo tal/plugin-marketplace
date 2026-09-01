@@ -43,6 +43,7 @@ Each plugin has its own README with the full feature/command/skill inventory —
 - **[iconifier](./plugins/iconifier/README.md)** — generate and apply custom macOS folder icons for a directory's subfolders, matching the existing house style of icons on peers and parent. macOS only.
 - **[og-simplify](./plugins/og-simplify/README.md)** — the resurrected /simplify: a three-agent (reuse/quality/efficiency) review-and-fix pass over your changed code.
 - **[spotify-web-api](./plugins/spotify-web-api/README.md)** — Spotify Web API reference skill: OAuth flows, endpoint and scope tables, development vs extended quota-mode limits, rate limiting, and working curl/Express auth examples.
+- **[library-manifests](./plugins/library-manifests/README.md)** — reference skill for the AI Library server's `.library.yml` folder manifests: every key, inheritance and narrow-only rules, protected/hidden/unlisted semantics, static apps, card previews, and every failure mode.
 
 ### Manual configuration
 

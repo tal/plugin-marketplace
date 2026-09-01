@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Link-only. Anyone with the exact URL gets the content. Absent from the parent grid, home,
+# /_/api/tree and global search; X-Robots-Tag noindex + Referrer-Policy no-referrer everywhere under it.
+# Obscurity, not protection — pair with visibility: protected if it matters.
+listing: unlisted

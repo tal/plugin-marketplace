@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Goes in a SUB-folder of a folder that is already protected. Not a widening (equal rank).
+# The parent's password still opens this subtree; this password opens ONLY this subtree.
+# Inside this folder the unlock prompt asks for this key, not the parent's.
+visibility: protected
+password: "child-only-key-77"

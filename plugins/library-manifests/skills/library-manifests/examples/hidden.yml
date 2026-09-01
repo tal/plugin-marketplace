@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=https://library.tal.by/_/schema/library.json
+# Never scanned, never catalogued. Answers 404 like a nonexistent path (or like the locked
+# ancestor, if there is one). Nothing below it is read. A `listing:` or `title:` here is pointless.
+visibility: hidden
