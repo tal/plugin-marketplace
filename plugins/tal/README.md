@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), partial-file staging, and Plex stand-up poster sourcing and installation.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, session-focus guardrails, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), partial-file staging, and Plex stand-up poster sourcing and installation.
 
 ## Install
 
@@ -49,6 +49,7 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 ## Skills
 
 - **`unambiguous`** — Automatically applies when the user asks to clarify a document or passage, eliminate ambiguity, fix unclear pronouns, demonstratives, or antecedents, or disambiguate a sentence. It keeps already-clear references, makes the smallest necessary edits, reports material grammatical ambiguities, and avoids broader copyediting.
+- **`stay-on-track`** — Fires when the user says "stay on track," "don't go off track," "stick to the plan," or otherwise asks to require confirmation before deviating from the session's goal. Pins down the stated or inferred goal in one sentence, then for the rest of the conversation stops and asks before starting unrequested work, broadening scope, switching approach, or touching unrelated files — but doesn't gate on in-scope decisions or on work the user directly asks for afterward.
 - **`get-pr-feedback`** — Fires when the user mentions PR feedback, review comments, "what did reviewers say", or pastes a `#discussion_r…` URL. Wraps `gh api` (GraphQL) in `skills/get-pr-feedback/get-pr-comments.sh` to return review threads as structured JSON with accurate resolved/outdated status — something `gh pr view` can't surface. Supports `-a` (actionable only), `-f` (include `diff_hunk`), `-o` (oldest-first), `-v` (verbose). Auto-spills to `/tmp/pr-comments-…json` when output exceeds 25 KB so large PRs don't get truncated by the Bash tool's 30 KB cap.
 - **`pr-thread-reply`** — Fires when the user asks to reply to an inline PR review comment or pastes a comment URL with a reply message. Native `gh pr comment` only posts top-level PR comments; this skill posts threaded replies to inline review comments via `gh api` (`skills/pr-thread-reply/reply-pr-thread.sh`). Accepts a comment URL plus message, or `--comment-id` / `--pr` / `--repo` flags, or runs interactively. Marked `disable-model-invocation: true` — invoke it deliberately, not automatically.
 - **`appstore-connect`** — Fires for App Store Connect, `altool`, TestFlight uploads, IPA validation, ASC REST API, JWT generation, asset pack management, etc. Reference-only (no scripts) — covers `xcrun altool` authentication (API key vs. password), the full command table (`--upload-package`, `--validate-app`, `--build-status`, `--list-apps`, `--list-providers`, `--generate-jwt`, `--app-store-text`, asset-pack commands), and ASC REST API workarounds for endpoints altool doesn't expose (TestFlight builds, beta groups, review status). Detailed reference files in `skills/appstore-connect/references/`.
@@ -101,6 +102,7 @@ plugins/tal/
     handoff.md                  /tal:handoff (also /handoff)
   skills/
     unambiguous/               Reference-clarity rewriting
+    stay-on-track/             Session-focus guardrails, auto-fires on "stay on track"
     get-pr-feedback/            PR review-thread fetcher
     pr-thread-reply/            Inline-comment reply poster
     appstore-connect/           xcrun altool + ASC REST API reference
