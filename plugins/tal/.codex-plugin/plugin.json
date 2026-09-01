@@ -1,6 +1,6 @@
 {
   "name": "tal",
-  "description": "Tal's personal helpers: commit, PR feedback, App Store Connect, and partial-commit staging.",
+  "description": "Tal's personal helpers for git and PR workflows, App Store Connect, and Plex stand-up artwork.",
   "author": {
     "name": "Tal Atlas",
     "email": "me@tal.by",
@@ -14,13 +14,15 @@
     "pull-request",
     "code-review",
     "ci",
-    "workflow"
+    "workflow",
+    "plex",
+    "media"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Tal",
-    "shortDescription": "Personal helpers for commits, PR feedback, and App Store Connect.",
-    "longDescription": "Reusable workflows for atomic and quick commits, PR review feedback, inline PR thread replies, App Store Connect / TestFlight tooling, and partial-commit line staging.",
+    "shortDescription": "Personal helpers for development and media workflows.",
+    "longDescription": "Reusable workflows for commits, PR feedback, App Store Connect, partial staging, and sourcing and installing Plex stand-up posters.",
     "developerName": "Tal Atlas",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,7 +33,8 @@
     "defaultPrompt": [
       "Prepare an atomic commit from the changes in this repo.",
       "Fetch the review feedback on PR #123 and summarize what needs addressing.",
-      "Reply to that PR review thread inline."
+      "Reply to that PR review thread inline.",
+      "Process the new YouTube stand-up downloads and install portrait posters in Plex."
     ],
     "brandColor": "#7C3AED"
   }

@@ -1,6 +1,6 @@
 {
     "name": "tal",
-    "description": "Tal's personal helper plugin — atomic, quick, and staged-only commit commands, PR review feedback fetching and inline thread replies, App Store Connect / TestFlight tooling, and partial-commit line staging.",
+    "description": "Tal's personal helper plugin for commit and PR workflows, App Store Connect / TestFlight tooling, partial staging, and Plex stand-up poster artwork.",
     "author": {
         "name": "Tal Atlas",
         "email": "me@tal.by"

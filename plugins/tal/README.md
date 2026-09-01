@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), and partial-file staging.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), partial-file staging, and Plex stand-up poster sourcing and installation.
 
 ## Install
 
@@ -54,6 +54,7 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 - **`appstore-connect`** — Fires for App Store Connect, `altool`, TestFlight uploads, IPA validation, ASC REST API, JWT generation, asset pack management, etc. Reference-only (no scripts) — covers `xcrun altool` authentication (API key vs. password), the full command table (`--upload-package`, `--validate-app`, `--build-status`, `--list-apps`, `--list-providers`, `--generate-jwt`, `--app-store-text`, asset-pack commands), and ASC REST API workarounds for endpoints altool doesn't expose (TestFlight builds, beta groups, review status). Detailed reference files in `skills/appstore-connect/references/`.
 - **`git-partial-commit`** — Fires when the user wants to stage specific lines or hunks rather than whole files (splitting mixed changes into atomic commits). Wraps `git apply --cached` against a user-supplied unified diff via `skills/git/partial-commit/stage-lines.sh`. Used internally by `/tal:git:commit:atomic` to handle files that contain changes for multiple features.
 - **`handoff`** — Compacts the current conversation into a handoff document so a fresh agent can pick up the work. Writes the doc to a `mktemp -t handoff-XXXXXX.md` path, suggests skills the next session should reach for, and references existing artifacts (PRDs, plans, ADRs, issues, commits, diffs) by path/URL rather than restating them. Optional argument: a one-liner describing what the next session will focus on. Marked `disable-model-invocation: true` — invoke explicitly via `/tal:handoff` (or `/handoff`); it will never auto-fire from the description. Adapted from [mattpocock/skills](https://github.com/mattpocock/skills/blob/733d312884b3878a9a9cff693c5886943753a741/skills/in-progress/handoff/SKILL.md).
+- **`plex-standup-posters`** — Fires when new YouTube or provider-managed stand-up downloads need Plex-ready artwork, folder metadata, cast tags, or portrait replacements for landscape thumbnails. Inventories videos/folders without matching assets, resolves exact comedian/title metadata, prioritizes official portrait art, generates only missing designs from official thumbnails, normalizes and visually checks `1000x1500` posters, installs sidecars and directly selected Plex uploads, adds the performer as a text actor tag, and verifies the image Plex actually serves. It explicitly distinguishes that text tags are not canonical Plex person links unless `tagKey`/`thumb` are present. Includes `scripts/plex-standup-posters.sh` for YouTube inventory, section-scoped scans, guarded installation, cast updates, and end-to-end verification against the personal `synfeld` setup.
 
 ## Requirements
 
@@ -64,6 +65,7 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 - **`git`** — required by `git-partial-commit` and the commit commands.
 - **`xcrun altool`** (Xcode command line tools) — required by the `appstore-connect` skill. An ASC API key (`AuthKey_<KEY_ID>.p8`) in one of altool's search paths or referenced via `$API_PRIVATE_KEYS_DIR` / `--p8-file-path` is needed for most subcommands.
 - **`curl`** — used in the ASC REST API examples for endpoints altool doesn't expose.
+- **`ssh`, `curl`, `jq`, and ImageMagick's `magick`** — required by `plex-standup-posters`. The personal defaults expect SSH host `synfeld`, media under `/volume1/Media/Standup`, and `PLEX_URL` / `PLEX_TOKEN` in `/Users/tal/Projects/darr-manager/.env`; each default has an environment-variable override.
 
 ## Files of interest
 
@@ -78,6 +80,8 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 - `skills/git/partial-commit/stage-lines.sh` — `git apply --cached` wrapper used by `/tal:git:commit:atomic` for splitting mixed-feature files.
 - `skills/appstore-connect/references/commands.md` — Complete `xcrun altool` command reference: every flag, every parameter, every command.
 - `skills/appstore-connect/references/rest-api-workarounds.md` — JWT-plus-curl recipes for TestFlight builds, beta groups, and other ASC REST API endpoints altool can't reach. Notes the URL-encoded bracket gotcha (`%5B` / `%5D`) for filter parameters.
+- `skills/plex-standup-posters/SKILL.md` — End-to-end sourcing, generation, normalization, installation, and verification policy for new YouTube comedy-special artwork in the Plex Standup library.
+- `skills/plex-standup-posters/scripts/plex-standup-posters.sh` — Guarded helper for discovering missing sidecars, scanning only the Standup section, writing exact-basename artwork, selecting uploaded Plex posters, and verifying served dimensions.
 - `commands.md` — A separate, slightly older command-doc file living alongside the README. Has more verbose write-ups of the two git commit commands (with example output and screenshots) than this README does.
 
 ## Layout
@@ -103,5 +107,6 @@ plugins/tal/
       references/
     git/partial-commit/         Stage exact lines/hunks via git apply --cached
     handoff/                    Conversation handoff document writer
+    plex-standup-posters/       Source and install 2:3 Plex stand-up artwork
   commands.md                   Long-form command docs (predates this README)
 ```

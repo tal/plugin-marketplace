@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plex Stand-up Posters"
+  short_description: "Source and install portrait posters for stand-up downloads"
+  default_prompt: "Find new YouTube stand-up downloads, source or create 2:3 posters, and install and verify them in Plex."
