@@ -20,6 +20,10 @@ How to write an explicit-only skill:
 - **Cross-references:** a model can't discover an explicit-only skill, so a pointer to it from another skill goes in that skill's **body** ("tell the user to run `/deploy`"), never in a description.
 - **README:** in the plugin README, say the skill is explicit-only.
 
-Skills that auto-trigger on purpose: `get-pr-feedback`, `git-partial-commit`, `plex-standup-posters`, `stay-on-track`, `unambiguous`. Leave them as they are unless the user asks. Explicit-only: `appstore-connect`, `deploy`, `handoff`, `pr-thread-reply`.
+Skills that auto-trigger on purpose: `get-pr-feedback`, `git-partial-commit`, `plex-standup-posters`, `stay-on-track`, `unambiguous`. Leave them as they are unless the user asks. Explicit-only: `appstore-connect`, `deploy`, `handoff`, `init`, `pr-thread-reply`.
 
-Platform-specific skills (Apple-only, one service, one host) are a strong case for explicit-only: their descriptions otherwise load into every unrelated project. To get auto-help in the projects that need it, add a small project-level skill in that repo (`.claude/skills/<name>/SKILL.md`) that points at the slash command.
+Platform-specific skills (Apple-only, one service, one host) are a strong case for explicit-only: their descriptions otherwise load into every unrelated project. To get auto-help in the projects that need it, run `/tal:init` there: it writes a managed block into that project's `AGENTS.md` mapping requests to the command to suggest. (A project-level pointer skill, `.claude/skills/<name>/SKILL.md`, also works.)
+
+## Keep `/tal:init`'s catalog current
+
+`skills/init/SKILL.md` §2–§3 list which explicit-only skills apply to which projects, and the request → command rows to write. When you add, rename or remove an explicit-only skill that only fits some projects, update its catalog row (and a `detect.sh` signal if none fits) in the same change. Project-agnostic skills (`handoff`) and auto-triggering ones don't get a row.
