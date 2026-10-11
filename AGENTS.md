@@ -35,3 +35,17 @@ Treat README staleness like a code lint failure: if you ship a change that intro
 
 - After a significant change anywhere in the repo, drop a markdown file in `changelog/` named `YYYY-MM-DD_descriptive-name.md`.
 - Description lengths in `.codex-plugin/plugin.json`: **`shortDescription` ≤ 60 chars, `longDescription` ≤ 150 chars**. Codex errors on overflow rather than truncating silently. The top-level `description` field tracks the existing range of ~100–145 chars.
+
+<!-- tal:init:start — written by /tal:init; re-run it to update. Edits inside are replaced. -->
+## tal plugin commands
+
+These come from the `tal` plugin and are explicit-only: an agent can't start
+them itself. When a request matches a row, suggest the command (Codex form in
+brackets) before doing the work by hand. Do it by hand only if the user says to.
+
+| When the user asks to… | Suggest |
+|---|---|
+| deploy, ship or release the marketplace (push `main` with a tag and release changelog) | `/deploy push` (`$deploy`) |
+| check whether a deploy would work | `/deploy doctor` (`$deploy doctor`) |
+| change deploy settings in `.config/deploy.yml` | `/deploy config` (`$deploy config`) |
+<!-- tal:init:end -->

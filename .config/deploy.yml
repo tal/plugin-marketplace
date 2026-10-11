@@ -1,0 +1,8 @@
+# Release config for the tal:deploy skill (`/deploy <target> <channel>`).
+# Generic keys and defaults: the deploy skill's SKILL.md §2.
+# Target keys: the deploy skill's targets/<target>.md.
+# No secrets here: env var names and key paths only.
+
+push:
+  remote: origin
+  ref: main
