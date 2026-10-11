@@ -147,20 +147,26 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 ### Polling for a Just-Uploaded Build
 
-`--upload-package` returns a `Delivery UUID` immediately, but the build entity in `/v1/builds` lags by anywhere from ~30 s to ~30 min. Poll by version filter — the JWT expires after ~20 min so re-mint inside the loop:
+`--upload-package` returns a `Delivery UUID` immediately. That UUID **is** the ASC build id. Processing takes anywhere from ~30 s to ~30 min.
+
+**Don't poll with `filter[version]`.** The list endpoint returns nothing while the build is `PROCESSING`, so a version-filter poll looks empty until processing finishes (seen on weather-range 2026.10.6.14.11). Poll the build directly by its id. It may 404 for the first few seconds. The JWT expires after ~20 min, so re-mint inside the loop:
 
 ```bash
 mint_token() {
   xcrun altool --generate-jwt --api-key "$KEY_ID" --api-issuer "$ISSUER" --p8-file-path "$P8" 2>&1 | grep '^ey'
 }
 
-BUILD_ID=""
+BUILD_ID="$DELIVERY_UUID"
+STATE=""
 for i in $(seq 1 90); do
   TOKEN=$(mint_token)
-  BUILD_ID=$(curl -s -H "Authorization: Bearer $TOKEN" \
-    "https://api.appstoreconnect.apple.com/v1/builds?filter%5Bapp%5D=$APP_ID&filter%5Bversion%5D=$TARGET_VERSION&limit=1" \
-    | jq -r '.data[0].id // empty')
-  [ -n "$BUILD_ID" ] && break
+  STATE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+    "https://api.appstoreconnect.apple.com/v1/builds/$BUILD_ID?fields%5Bbuilds%5D=processingState" \
+    | jq -r '.data.attributes.processingState // empty')
+  case "$STATE" in
+    VALID) break ;;
+    FAILED|INVALID) echo "processing $STATE" >&2; break ;;
+  esac
   sleep 30
 done
 ```
