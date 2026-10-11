@@ -23,6 +23,8 @@ The tool searches for `AuthKey_<KEY_ID>.p8` in order:
 3. `~/.private_keys`
 4. `~/.appstoreconnect/private_keys`
 
+**Tal's keys live in `~/.config/appstoreconnect/private_keys` (with `AuthKey_<KEY_ID>.issuer-id` sidecars), which altool does NOT search** (`Failed to load AuthKey file. (-43)`). Always `export API_PRIVATE_KEYS_DIR="$HOME/.config/appstoreconnect/private_keys"` first.
+
 Override with `$API_PRIVATE_KEYS_DIR` environment variable or pass explicitly via `--p8-file-path <path>`.
 
 ### Username / Password
