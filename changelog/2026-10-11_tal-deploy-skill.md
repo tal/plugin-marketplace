@@ -38,7 +38,10 @@
 - The `deploy` description claims TestFlight uploads from repos that have `.config/deploy.yml` over `tal:appstore-connect`. Otherwise an upload could run with no tag and no changelog. It also answers "what's new since the last build" without deploying.
 - Archives go to `~/Library/Developer/Xcode/Archives/…` and exports to a temp dir, so build output never dirties the tree that `tag.sh` checks.
 
+## Follow-ups
+
+- Weather-range migrated the same day (weather-range `05437ad`): `.config/deploy.yml` plus a short pointer skill. The design brief was deleted once both sides shipped.
+
 ## Not done
 
-- Weather-range migration (brief §10 step 4): replace its `testflight` skill with `.config/deploy.yml`. That has to happen in the weather-range repo.
 - Supabase and Portainer targets: deferred until something actually deploys there.
