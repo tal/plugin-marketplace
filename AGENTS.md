@@ -31,5 +31,7 @@ Treat README staleness like a code lint failure: if you ship a change that intro
 
 ## Other recurring rules
 
+- Some plugins have their own `plugins/<name>/AGENTS.md` (with a `CLAUDE.md` pointer). Read it before adding or changing that plugin's skills. `tal`'s says new skills are explicit-only unless the user says otherwise.
+
 - After a significant change anywhere in the repo, drop a markdown file in `changelog/` named `YYYY-MM-DD_descriptive-name.md`.
 - Description lengths in `.codex-plugin/plugin.json`: **`shortDescription` ≤ 60 chars, `longDescription` ≤ 150 chars**. Codex errors on overflow rather than truncating silently. The top-level `description` field tracks the existing range of ~100–145 chars.

@@ -39,6 +39,40 @@ push:
     production: { ref: production }
 ```
 
+## Setup
+
+Used by config mode (SKILL.md §11) to fill the block. All read-only.
+
+| Key | Where to find it |
+|---|---|
+| `remote` | `git remote -v`. A PaaS remote (`dokku`, `heroku`, a `git@<host>:<app>` URL that isn't GitHub) is usually the deploy remote, otherwise `origin` |
+| `ref` (per channel) | `.github/workflows/*.yml` whose `on: push: branches:` lists a branch, and whose name or jobs mention deploy / release / an `environment:`. Each such branch is a channel candidate. For a PaaS remote, its default branch (`main` / `master`) |
+| `watch`, `workflow` | A matching workflow → `watch: gh-run` with `workflow: <file name>`. PaaS remote → `none`. Otherwise ask: `url` with a `health_url`, or `none` |
+| `push_mode` | Leave out (`fast-forward`). Only set `force-with-lease` when the user says the branch is deploy-only |
+
+## Doctor
+
+Used by `/deploy doctor` (SKILL.md §12). Read-only.
+
+1. **Remote:** `git remote get-url <remote>`. Then
+   `git ls-remote --exit-code <remote> refs/heads/<ref>` for each channel. A
+   missing ref → ⚠️ "the first deploy creates it". Unreachable or auth
+   failure → ❌.
+2. **Fast-forward:** after `git fetch <remote> <ref>`, if `<remote>/<ref>`
+   isn't an ancestor of `HEAD`, the next deploy would need a force push → ⚠️
+   (❌ with `push_mode: fast-forward`, since it would refuse).
+3. **Watcher:**
+   - `gh-run`: `gh auth status` passes and `gh workflow view <workflow>` finds
+     it. The workflow file's `on: push: branches` includes `ref`; if not → ❌,
+     because a push won't trigger it.
+   - Report the newest run on that branch:
+     `gh run list --workflow <workflow> --branch <ref> --limit 1`. A failed
+     one → ⚠️.
+   - `url`: `health_url` returns 2xx now.
+4. **History:** the newest `builds/push/<channel>/*` tag per channel, and
+   whether `<remote>/<ref>` still points at its commit. If not, something
+   other than `/deploy` pushed there since.
+
 ## Version bump
 
 None. Use `git-sha` (the default). Dirty runs are **refused** by this target:

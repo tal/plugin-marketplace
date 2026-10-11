@@ -40,6 +40,38 @@ fly:
       health_url: https://myapp.fly.dev/healthz
 ```
 
+## Setup
+
+Used by config mode (SKILL.md §11) to fill the block. All read-only.
+
+| Key | Where to find it |
+|---|---|
+| `config` | `ls fly.toml fly.*.toml`. Leave the key out when it's the default `fly.toml`. Per-channel files (`fly.staging.toml`) go on the channel |
+| `app` (per channel) | `app = …` in each config, plus the `Name` of each entry in `fly apps list --json`. Suggest channel names from the app names (`myapp-staging` → `staging`, `myapp` → `prod`), and confirm the order, since it's the promotion order |
+| `health_url` | A `[[http_service.checks]]` / `[[services.http_checks]]` `path` in the config, on `https://<app>.fly.dev`. Ask before adding it: it must be publicly reachable |
+| `build` | `remote` (the default, so leave it out) unless the user wants local Docker builds |
+| `token_env` | Leave out (logged-in session). For CI-style deploy tokens, ask for the env var **name** only |
+
+## Doctor
+
+Used by `/deploy doctor` (SKILL.md §12). Read-only.
+
+1. **Tools and auth:** `fly version`. If `token_env` is set and that env var
+   is empty → ❌. Otherwise `fly auth whoami` must pass.
+2. **Config:** each `config` file exists and passes `fly config validate -c <config>`.
+   If its `app = …` differs from the channel's `app`, that's fine, because `-a`
+   wins. Say so anyway.
+3. **Apps:** `fly status -a <app> --json` works for every channel. Report the
+   machine count and the current image. An app with no machines → ⚠️.
+4. **Promotion path:** `fly apps list --json` → each channel app's
+   `Organization.Slug`. Apps in different orgs → ⚠️: promotion can't re-use
+   the image, so every channel builds fresh.
+5. **Builds:** `build: local` needs `docker info` to succeed.
+6. **Health:** each `health_url` returns 2xx right now. Failing → ⚠️: it might
+   be down, or the URL is wrong.
+7. **History:** the newest `builds/fly/<channel>/*` tag per channel, and
+   whether it matches the image label the app is running now.
+
 ## Version bump
 
 None. Use `git-sha` (the default). The image is labelled with the version

@@ -1,11 +1,14 @@
 ---
 name: appstore-connect
-description: This skill should be used when the user asks about "App Store Connect", "altool", "xcrun altool", "upload to App Store", "submit to TestFlight", "validate app archive", "TestFlight builds", "list my apps", "check build status", "app store metadata", "app store text", "asset packs", "ASC API key", "generate JWT for App Store", "App Store Connect REST API", "IPA upload", or needs to interact with Apple's App Store Connect service via the command line. Also applicable when uploading, validating, or checking status of iOS/macOS/visionOS app submissions, or when querying TestFlight build information.
+description: Apple App Store Connect toolbox — `xcrun altool` reference (auth, upload, validate, build status, metadata, asset packs), ASC REST API recipes for TestFlight builds, beta groups and review status, plus `asc-jwt.py` and `signing-identities.sh`. Invoke explicitly via /appstore-connect (`$appstore-connect` in Codex).
+disable-model-invocation: true
 ---
 
 # App Store Connect CLI (altool)
 
 `xcrun altool` is Apple's command-line tool for interacting with App Store Connect. It handles app uploads, validation, build status checks, metadata management, and JWT generation for the ASC REST API.
+
+**Shipping a TestFlight build from a repo that has `.config/deploy.yml`?** Suggest `/deploy testflight <channel>` (`$deploy` in Codex) before uploading by hand. Unlike a manual upload, it does the version bump, the tag and the changelog.
 
 ## Authentication
 

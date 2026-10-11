@@ -55,6 +55,88 @@ testflight:
         - {name: Public Beta, id: <uuid>, kind: external}
 ```
 
+## Setup
+
+Used by config mode (SKILL.md §11) to fill the block. All read-only. Ask only
+for what this can't find, offering what it did find as the options.
+
+| Key | Where to find it |
+|---|---|
+| `project` / `workspace` | `ls -d *.xcworkspace *.xcodeproj` at the repo root. Prefer a workspace when both exist (CocoaPods) |
+| `scheme` | `xcodebuild -list -json -project <p>` → `.project.schemes` (`.workspace.schemes` for a workspace). SPM packages add their own schemes, so suggest the one named like the project, or the app target's |
+| `bundle_id`, `team_id` | The app target's `PRODUCT_BUNDLE_IDENTIFIER` and `DEVELOPMENT_TEAM` (command below the table) |
+| `api_key_id` | `ls "$HOME/.config/appstoreconnect/private_keys"/AuthKey_*.p8` (and `$API_PRIVATE_KEYS_DIR`). One key → use it. The issuer comes from its `.issuer-id` sidecar; with no sidecar, ask for `api_issuer_id` |
+| `export_options` | `grep -l app-store-connect $(find . -maxdepth 2 -name '*.plist' -not -path './Pods/*')`. None → offer to write `ExportOptions-AppStore.plist` with `method` `app-store-connect`, `teamID`, `signingStyle` `automatic`, `destination` `export` |
+| `app_id` | JWT as in Preflight step 2, then `GET /v1/apps?filter[bundleId]=<bundle_id>&fields[apps]=name` → `.data[0].id`. No match means the app doesn't exist on ASC yet. Creating it is web-only, so stop and say so |
+| `beta_groups` | `GET /v1/betaGroups?filter[app]=<app_id>&fields[betaGroups]=name,isInternalGroup`. Ask per channel (multi-select), `kind` from `isInternalGroup`. `internal` usually gets the internal group, `external` the rest |
+| `release_gate`, `expected_bundles` | Leave out unless the user asks, or the repo already has a script like `scripts/verify-release-ipa.sh`. For an app with a watch app or extensions, suggest `expected_bundles` (`Watch/<name>.app`, `PlugIns/<name>.appex`) |
+
+```bash
+xcodebuild -showBuildSettings -json -project <p> -scheme <s> \
+  | jq '.[] | select(.buildSettings.WRAPPER_EXTENSION == "app") | .buildSettings | {PRODUCT_BUNDLE_IDENTIFIER, DEVELOPMENT_TEAM}'
+```
+
+## Doctor
+
+Used by `/deploy doctor` (SKILL.md §12). Read-only: GETs only, and nothing is
+built, signed or created. Each line is ✅ / ⚠️ / ❌.
+
+1. **Tools:** `xcodebuild -version`, `xcrun altool --version`, `python3`, `openssl`.
+2. **Project:** `project` / `workspace` exists, and `scheme` is in
+   `xcodebuild -list -json`. From the app target's build settings (Setup's command):
+   - `PRODUCT_BUNDLE_IDENTIFIER` ≠ `bundle_id` or `DEVELOPMENT_TEAM` ≠ `team_id` → ❌
+   - `VERSIONING_SYSTEM` isn't `apple-generic` → ⚠️ (the Version bump falls
+     back to editing `project.pbxproj`)
+   - Report `CODE_SIGN_STYLE` (`Automatic` / `Manual`) and `MARKETING_VERSION`.
+3. **Export options:** the file exists. `plutil -extract method raw <file>` is
+   `app-store-connect` (`app-store` is the deprecated spelling → ⚠️), and
+   `teamID`, if set, equals `team_id`.
+4. **API key:**
+   - `<api_key_dir>/AuthKey_<api_key_id>.p8` exists. Check its mode with
+     `stat -f %Lp`; readable by group or others → ⚠️.
+   - The issuer resolves, from `api_issuer_id` or the sidecar.
+   - The JWT mints (Preflight step 2), and
+     `GET /v1/apps/<app_id>?fields[apps]=bundleId,name` returns 200 with
+     `bundleId` = `bundle_id`. 401/403 → ❌: wrong issuer, or the key was revoked.
+5. **Beta groups:** `GET /v1/betaGroups?filter[app]=<app_id>&fields[betaGroups]=name,isInternalGroup`.
+   For each channel's `beta_groups` entry:
+   - the `id` is missing → ❌
+   - `kind` disagrees with `isInternalGroup` → ❌
+   - only the `name` differs → ⚠️ (renamed on ASC; the id is what counts)
+6. **Distribution certificates.** Save the account's certificates, then check
+   which local identities can sign:
+   ```bash
+   curl -sg -H "Authorization: Bearer $TOKEN" \
+     'https://api.appstoreconnect.apple.com/v1/certificates?fields[certificates]=serialNumber,expirationDate,certificateType,displayName&limit=200' \
+     > "$TMPDIR/asc-certs.json"
+   "${CLAUDE_PLUGIN_ROOT}/skills/appstore-connect/scripts/signing-identities.sh" \
+     --team <team_id> --kind distribution --asc-certs "$TMPDIR/asc-certs.json"
+   ```
+   - `usable` ≥ 1 → ✅ with `best_days_left`. If the best one is `expiring`
+     → ⚠️ with its date.
+   - A row with `asc=missing` → that cert was revoked on Apple's side. ❌ if
+     it was the only usable one.
+   - `usable=0` (exit 1) with `CODE_SIGN_STYLE=Automatic` → ✅ "cloud-managed
+     signing". The export signs with Apple's cloud-held distribution
+     certificate through the API key (Preflight step 4), which needs an
+     Admin-role key. Cloud-managed certificates don't show up in
+     `/v1/certificates` or the keychain, so this can't be checked further
+     without exporting. With `Manual` → ❌: install the identity (`.p12`) from
+     the Mac that holds its private key.
+   - Headroom: count the account's distribution certificates
+     (`certificateType` `DISTRIBUTION` / `IOS_DISTRIBUTION`) and list their
+     expiration dates. One expiring within 30 days → ⚠️. Apple caps how
+     many an account can hold (3 per weather-range's logs), so ⚠️ at the cap
+     if anyone uses manual signing. Never create or revoke one from doctor.
+7. **Provisioning profiles** (`CODE_SIGN_STYLE=Manual` only; automatic
+   signing makes its own). `GET /v1/profiles?filter[profileType]=IOS_APP_STORE&filter[profileState]=ACTIVE&include=bundleId,certificates`.
+   The app's bundle id, and each extension's, needs an active profile that
+   contains a usable certificate's serial. Otherwise ❌.
+8. **Release gate:** `release_gate`, if set, exists and is executable.
+9. **History:** for each channel, the newest `builds/testflight/<channel>/*`
+   tag, plus the highest build number on ASC (Preflight step 3). A tag that
+   sorts above every ASC build → ⚠️ (that upload never landed).
+
 ## Version bump
 
 - `xcrun agvtool new-version -all <version>`. This needs
@@ -86,11 +168,15 @@ testflight:
    (with `curl -g` or `%5B`/`%5D`), follow `links.next`, and take the maximum
    `attributes.version` comparing as integer tuples split on dots. Stop if the
    new number isn't greater. Put the maximum in the plan.
-4. Signing: `security find-identity -p codesigning`. Omit `-v`, which hides
-   expired identities. With no local Apple Distribution identity,
-   `-allowProvisioningUpdates` will **mint a new distribution certificate**.
-   Apple caps how many you can hold, so check `GET /v1/certificates` for
-   headroom and say so in the plan.
+4. Signing: `signing-identities.sh --team <team_id>` (see Doctor step 6).
+   - **A usable local distribution identity:** the export signs with it.
+   - **None, with automatic signing:** the export uses **cloud-managed
+     distribution signing** through the API key. Apple holds the
+     certificate, so nothing is needed locally and no new certificate is
+     minted. weather-range has always shipped this way. It needs an
+     Admin-role key. Say "cloud-managed signing" in the plan.
+   - **None, with manual signing:** stop. A manual profile needs a local
+     identity.
 5. **Promotion check (external only).** If the newest `builds/testflight/internal/*`
    tag is newer than the newest external one, ask: **Promote internal
    `<version>`** or **Ship a new build**. Choosing Promote **declares a

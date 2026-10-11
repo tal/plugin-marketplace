@@ -1,7 +1,8 @@
 ---
 name: deploy
-description: Deploy or release the current repo with `/deploy [target] [channel]` (`$deploy` in Codex), driven by the repo's `.config/deploy.yml`. Checks the tree is clean, makes an isolated version-bump commit, ships through a per-destination target file (TestFlight, Fly.io, or a deploy-by-`git push` branch), creates an immutable annotated tag `builds/<target>/<channel>/<version>`, and writes a release changelog with What's New since that channel's last tag. Use when the user wants to actually deploy, release or ship this repo, e.g. "deploy this", "ship it to TestFlight", "upload a build of this app", "push a TestFlight build", "promote the internal build to external", "deploy to staging / prod", "fly deploy", "push to production", "cut a release", "tag the release". Also answers "what's new since the last build" without deploying. For a TestFlight upload from a repo with `.config/deploy.yml`, use this skill instead of `tal:appstore-connect`, which remains the reference for raw altool / REST mechanics. Not for general questions about deploy tooling or CI.
-argument-hint: "[target | pipeline | target:channel] [channel] [--dirty]"
+description: Release plumbing driven by the repo's `.config/deploy.yml`. Ships to TestFlight, Fly.io or a git-push branch with a clean-tree check, a bump commit, an immutable `builds/<target>/<channel>/<version>` tag and a release changelog. `/deploy config` edits deploy.yml; `/deploy doctor` checks readiness and iOS certs. Invoke explicitly via /deploy (`$deploy` in Codex); it never auto-fires.
+argument-hint: "[target | pipeline | target:channel] [channel] [--dirty] | config [init | add <target> | <change>] | doctor [target[:channel]]"
+disable-model-invocation: true
 ---
 
 # Deploy
@@ -17,12 +18,20 @@ step here starts to need a target-specific `if`, move it into the target file.
 external last get?"): resolve the target and channel (§3), run
 `since-last-tag.sh` (§5) and answer. Don't plan, bump or deploy.
 
+**Config edits** (`/deploy config …`, "add a staging channel", "set up
+deploys for this repo"): go to §11. Nothing deploys.
+
+**Doctor** (`/deploy doctor`, "is this ready to deploy?", "are the certs
+OK?"): go to §12. Read-only.
+
 ## 1. Parse the request
 
 Arguments: `$ARGUMENTS`
 
 ```
 /deploy [<target> | <pipeline> | <target>:<channel>] [<channel>] [--dirty] [--<key> <value>]
+/deploy config [init | add <target> [<channel> …] | <plain words>]
+/deploy doctor [<target> | <target>:<channel>]
 ```
 
 - Plain words work the same way: "deploy testflight internal even though it's dirty".
@@ -33,8 +42,16 @@ Arguments: `$ARGUMENTS`
 
 ## 2. Load the config
 
-Read `$(git rev-parse --show-toplevel)/.config/deploy.yml`. A missing file is
-fine; then no targets are configured.
+```bash
+"$S/check-config.sh" --format json
+```
+
+It reads `$(git rev-parse --show-toplevel)/.config/deploy.yml` and prints the
+parsed `config`, the `targets` with their channels, the `pipelines`, and any
+`errors` / `warnings`. `status=missing` is fine: no targets are configured.
+`status=invalid` (exit 1): stop, list the errors, and offer to fix them in
+config mode (§11). Exit 2 means there's no YAML parser (`ruby` or `python3`
+with PyYAML); read the file yourself and apply the same checks.
 
 Generic keys. All are optional, and the defaults live here, not in the file:
 
@@ -51,7 +68,7 @@ Generic keys. All are optional, and the defaults live here, not in the file:
 | `release_notes_source` | `{include: [feat, fix, perf], exclude: [chore, docs, test, ci, build, style, refactor, design]}` | Conventional-commit types that count as user-facing |
 | `unpushed_policy` | `push` | `push` / `ask` / `refuse` |
 | `confirm_before` | `[]` | Extra gates by step name. Generic steps: `push`, `bump-commit`, `ship`, `tag`. Targets name their own (e.g. `upload`) |
-| `pipelines` | none | `name: [target:channel, …]`, see §8 |
+| `pipelines` | none | `name: ["target:channel", …]` (quote the steps in a flow list; Ruby's YAML rejects an unquoted `:` there), see §8 |
 
 **Every other top-level key is a target block.** The key is the target name,
 and having a block is what makes a target configured. A target block holds:
@@ -66,9 +83,12 @@ and having a block is what makes a target configured. A target block holds:
 
 Secrets never go in the file: env var **names** and key **paths** only.
 
-Config errors (stop and name the problem): a pipeline with the same name as a
-target block; a pipeline step that doesn't name a target block and one of its
-channels. Pipelines never run best-effort targets (§9).
+Config errors, all caught by `check-config.sh`: a pipeline with the same name
+as a target block; a pipeline step that doesn't name a target block and one of
+its channels; a target or pipeline named `config` or `doctor` (reserved for
+§11 and §12); a
+boolean, a `dirty` key, or a secret anywhere in the file. Pipelines never run
+best-effort targets (§9).
 
 Minimal file:
 
@@ -87,6 +107,7 @@ testflight:
 
 First word, checked in this order:
 
+0. `config` → config mode (§11). `doctor` → doctor (§12).
 1. A pipeline name → pipeline run (§8).
 2. A target block → that target. `<target>:<channel>` sets both.
 3. A `targets/<name>.md` with no block → that target. Its required keys will be
@@ -109,12 +130,15 @@ No AskUserQuestion tool (e.g. Codex): ask the same question in plain text and wa
 ## 4. Load the target file
 
 Read `targets/<target>.md` from this skill's directory. Every target file has
-the same headings: **Required keys, Version bump, Preflight, Ship, Verify,
-Rollback, Notes / landmines**.
+the same headings: **Required keys, Setup, Doctor, Version bump, Preflight,
+Ship, Verify, Rollback, Notes / landmines**. **Setup** says where each key can
+be found, and config mode (§11) uses it. **Doctor** is the target's standing
+readiness check (§12).
 
 Check every required key against the merged block + channel values. If one is
-missing, stop and ask. Never silently default. Offer to write the answers into
-`.config/deploy.yml` at the end of the run.
+missing, look it up the way **Setup** says, then ask, offering what it found.
+Never silently default. Offer to write the answers into `.config/deploy.yml`
+at the end of the run (§11).
 
 ## 5. Resolve the plan, then confirm
 
@@ -307,7 +331,8 @@ When a target has no block and no `targets/<name>.md`:
     **source** (`~/Projects/plugin-marketplace/plugins/tal/skills/deploy/targets/`;
     ask where it is if that path doesn't exist). Never write into the installed
     plugin cache.
-  - a `<name>:` block in this repo's `.config/deploy.yml`.
+  - a `<name>:` block in this repo's `.config/deploy.yml`, written the
+    config-mode way (§11).
 
 ## 10. Rules
 
@@ -319,3 +344,44 @@ When a target has no block and no `targets/<name>.md`:
 - Rollback is the target's **Rollback** section. The previous
   `builds/<target>/<channel>/*` tag is the index of what to go back to.
 - Show the plan before any action, and put gates in front of irreversible steps.
+
+## 11. Config mode
+
+`/deploy config …`, or plain words that are clearly about the file, set up or
+change `.config/deploy.yml`. Follow `references/config-mode.md` (in this
+skill's directory). In short: load with `check-config.sh` → work out the change,
+filling target keys from the target file's **Setup** → show it and confirm →
+edit the file in place, keeping comments → validate → offer a commit with only
+that file. Config mode never deploys, tags or pushes.
+
+## 12. Doctor
+
+`/deploy doctor [<target>[:<channel>]]` checks whether each configured target
+could deploy right now, without deploying. It never builds, uploads, tags,
+commits, edits `deploy.yml`, or creates anything (no certificates, profiles,
+apps or groups). Network calls are GETs only. With no target, check every
+target block.
+
+1. **Config:** `"$S/check-config.sh"`. A missing file → say so, offer
+   `/deploy config init`, and stop. Errors → ❌ each one and keep going with
+   the blocks that parsed.
+2. **Repo:**
+   - `git`, `jq` and `curl` exist.
+   - `branch` exists locally and on `origin`, and has an upstream.
+   - `"$S/verify-clean-tree.sh" --branch <branch>`, reported as info: a dirty
+     tree or the wrong branch blocks a deploy, but it's easy to fix.
+   - `changelog_dir` exists (⚠️ if not; the first run creates it).
+3. **Keys, per target and channel**, read from the target file after merging
+   block and channel values:
+   - a missing **Required key** → ❌
+   - a value outside its table's enum → ❌
+   - a key that's in neither the target file's tables nor §2 → ⚠️ (probably
+     a typo)
+4. **The target's Doctor section:** run every check in it.
+5. **Report:** one table per target: Check | Result (✅ / ⚠️ / ❌) | Detail.
+   Then a verdict per `target:channel`: `ready`, `ready-with-warnings` or
+   `blocked`. Pipelines get the worst verdict of their steps.
+6. **Fixes:**
+   - Key problems → offer config mode (§11) with the fixes filled in.
+   - Anything outside the repo (certificates, profiles, ASC groups, Fly apps,
+     auth) → say exactly what to do and where. Don't do it from doctor.
