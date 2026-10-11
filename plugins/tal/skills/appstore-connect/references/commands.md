@@ -122,6 +122,8 @@ TOKEN=$(xcrun altool --generate-jwt --api-key <KEY_ID> --api-issuer <ISSUER_ID> 
 
 The token is valid for 20 minutes. Use it with `Authorization: Bearer $TOKEN` for ASC REST API calls.
 
+> The token has a fractional `exp` and no `iat`. The REST API has rejected that with `401 NOT_AUTHORIZED` (2026-07-11) and has also accepted it (2026-10-11). For REST calls, prefer `scripts/asc-jwt.py`, which signs an integer `exp` (see `rest-api-workarounds.md`).
+
 Additional options:
 - `--auth-string <string>` — Pass the private key content directly
 - `--p8-file-path <path>` — Explicit path to the `.p8` key file

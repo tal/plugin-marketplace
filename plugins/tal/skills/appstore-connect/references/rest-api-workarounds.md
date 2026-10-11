@@ -1,14 +1,24 @@
 # ASC REST API Workarounds
 
-altool cannot access TestFlight builds, beta testers, review status, or many other App Store Connect features. Use `--generate-jwt` to mint a token, then query the REST API directly with curl.
+altool cannot access TestFlight builds, beta testers, review status, or many other App Store Connect features. Mint a JWT, then query the REST API directly with curl.
 
 ## Generating a JWT
+
+Prefer the bundled minter, which signs an ES256 token with an **integer** `exp`:
+
+```bash
+TOKEN=$("${CLAUDE_PLUGIN_ROOT}/skills/appstore-connect/scripts/asc-jwt.py" --key-id <KEY_ID>)
+# --issuer defaults to the AuthKey_<KEY_ID>.issuer-id sidecar
+# --key-dir defaults to $API_PRIVATE_KEYS_DIR, then ~/.config/appstoreconnect/private_keys
+```
+
+`xcrun altool --generate-jwt` emits a **fractional** `exp` (e.g. `1791737477.3232589`) and no `iat`. On 2026-07-11 the REST API rejected such a token with `401 NOT_AUTHORIZED` mid-release, while altool's own upload path kept working (weather-range release log). On 2026-10-11 the same kind of token was accepted again on `GET /v1/apps` and `GET /v1/builds`. Apple's behavior has varied, so don't rely on it for REST calls. The altool form still works as a fallback:
 
 ```bash
 TOKEN=$(xcrun altool --generate-jwt --api-key <KEY_ID> --api-issuer <ISSUER_ID> 2>&1 | grep '^ey')
 ```
 
-The token is valid for ~20 minutes. All REST API calls use:
+The token is valid for up to 20 minutes. All REST API calls use:
 ```bash
 curl -s -H "Authorization: Bearer $TOKEN" '<URL>'
 ```
@@ -149,20 +159,25 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 `--upload-package` returns a `Delivery UUID` immediately. That UUID **is** the ASC build id. Processing takes anywhere from ~30 s to ~30 min.
 
-**Don't poll with `filter[version]`.** The list endpoint returns nothing while the build is `PROCESSING`, so a version-filter poll looks empty until processing finishes (seen on weather-range 2026.10.6.14.11). Poll the build directly by its id. It may 404 for the first few seconds. The JWT expires after ~20 min, so re-mint inside the loop:
+**Don't poll with `filter[version]`.** The list endpoint returns nothing while the build is `PROCESSING`, so a version-filter poll looks empty until processing finishes (seen on weather-range 2026.10.6.14.11). Poll the build directly by its id. A 404 for the first few seconds just means "not there yet". A **401/403 is an auth failure, not an absent build**. Stop on it: a poll that treats every non-200 as "keep waiting" looks like a 20-minute stall. The JWT expires after ~20 min, so re-mint inside the loop:
 
 ```bash
 mint_token() {
-  xcrun altool --generate-jwt --api-key "$KEY_ID" --api-issuer "$ISSUER" --p8-file-path "$P8" 2>&1 | grep '^ey'
+  "${CLAUDE_PLUGIN_ROOT}/skills/appstore-connect/scripts/asc-jwt.py" --key-id "$KEY_ID" --issuer "$ISSUER"
 }
 
 BUILD_ID="$DELIVERY_UUID"
 STATE=""
 for i in $(seq 1 90); do
   TOKEN=$(mint_token)
-  STATE=$(curl -s -H "Authorization: Bearer $TOKEN" \
-    "https://api.appstoreconnect.apple.com/v1/builds/$BUILD_ID?fields%5Bbuilds%5D=processingState" \
-    | jq -r '.data.attributes.processingState // empty')
+  RESP=$(curl -s -w '\n%{http_code}' -H "Authorization: Bearer $TOKEN" \
+    "https://api.appstoreconnect.apple.com/v1/builds/$BUILD_ID?fields%5Bbuilds%5D=processingState")
+  CODE=$(printf '%s' "$RESP" | tail -n1)
+  case "$CODE" in
+    200) STATE=$(printf '%s' "$RESP" | sed '$d' | jq -r '.data.attributes.processingState') ;;
+    404) STATE="" ;;
+    *) echo "HTTP $CODE: $(printf '%s' "$RESP" | sed '$d')" >&2; break ;;
+  esac
   case "$STATE" in
     VALID) break ;;
     FAILED|INVALID) echo "processing $STATE" >&2; break ;;

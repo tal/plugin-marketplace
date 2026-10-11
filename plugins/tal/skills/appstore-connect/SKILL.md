@@ -72,12 +72,12 @@ altool does **not** expose:
 - In-app purchase configuration
 - App analytics or sales data
 
-For these, mint a JWT with `--generate-jwt` and hit the ASC REST API directly with curl. Consult **`references/rest-api-workarounds.md`** for patterns including TestFlight build queries, along with the URL-encoded bracket syntax required for filter parameters.
+For these, mint a JWT with `scripts/asc-jwt.py` (integer `exp`; `--generate-jwt` emits a fractional one the REST API has rejected with 401) and hit the ASC REST API directly with curl. Consult **`references/rest-api-workarounds.md`** for patterns including TestFlight build queries, along with the URL-encoded bracket syntax required for filter parameters.
 
 ### Quick Example: Query TestFlight Builds
 
 ```bash
-TOKEN=$(xcrun altool --generate-jwt --api-key <KEY_ID> --api-issuer <ISSUER_ID> 2>&1 | grep '^ey')
+TOKEN=$("${CLAUDE_PLUGIN_ROOT}/skills/appstore-connect/scripts/asc-jwt.py" --key-id <KEY_ID> --issuer <ISSUER_ID>)
 curl -s -H "Authorization: Bearer $TOKEN" \
   'https://api.appstoreconnect.apple.com/v1/builds?filter%5Bapp%5D=<APPLE_ID>&sort=-uploadedDate&limit=5'
 ```

@@ -69,8 +69,16 @@ testflight:
 
 1. `export API_PRIVATE_KEYS_DIR="<api_key_dir>"`, because altool doesn't search
    `~/.config/…`. Check that `AuthKey_<api_key_id>.p8` exists.
-2. Mint a JWT (`xcrun altool --generate-jwt --api-key … --api-issuer … | grep '^ey'`).
-   A failure here is a key problem; stop.
+2. Mint a JWT with an integer `exp` and make one read-only call with it:
+   ```bash
+   TOKEN=$("${CLAUDE_PLUGIN_ROOT}/skills/appstore-connect/scripts/asc-jwt.py" \
+     --key-id <api_key_id> --issuer <api_issuer_id> --key-dir "<api_key_dir>")
+   curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" \
+     "https://api.appstoreconnect.apple.com/v1/apps/<app_id>?fields%5Bapps%5D=name"   # expect 200
+   ```
+   Anything but 200 is a key problem; stop. Re-mint every ~15 min during the
+   run. Every REST call below uses this `$TOKEN`, and any 401/403 is an error,
+   never "not there yet".
 3. **The new build number must tuple-sort above every build on ASC**, not
    just above our tags. Don't trust "newest uploaded": a stray older upload
    can have the highest number. Fetch
@@ -241,7 +249,8 @@ Log the expiry in a changelog entry.
 - `Failed to load AuthKey file. (-43)` → `API_PRIVATE_KEYS_DIR` isn't set.
 - Use `--upload-package`, never `--upload-app`. With a nested watch app,
   `--upload-app` fails `Cannot determine the platform`.
-- `curl` URLs containing `[ ]` need `-g`, or curl says "bad range in URL".
+- `curl` URLs containing `[ ]` need `-g`, or curl says "bad range in URL". Unquoted, zsh also treats them as globs. Use `%5B`/`%5D` inside quotes.
+- `altool --generate-jwt` tokens have a fractional `exp`. The REST API rejected one with 401 on 2026-07-11 and silently stalled a poll. Use `asc-jwt.py` (Preflight step 2).
 - Don't route uploads through Transporter.app 1.4. It can't package Xcode 26 IPAs.
 - Legacy history: older tags used `ASC build id:` in the annotation, and older bump
   commits used a `TestFlight-Channel:` trailer (set `bump_trailers` to keep it).
