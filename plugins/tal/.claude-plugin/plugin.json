@@ -1,6 +1,6 @@
 {
     "name": "tal",
-    "description": "Tal's personal helper plugin for commit and PR workflows, App Store Connect / TestFlight tooling, partial staging, and Plex stand-up poster artwork.",
+    "description": "Tal's personal helper plugin for commit and PR workflows, deploys, App Store Connect tooling, partial staging, and Plex stand-up poster artwork.",
     "author": {
         "name": "Tal Atlas",
         "email": "me@tal.by"

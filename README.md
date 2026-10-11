@@ -35,7 +35,7 @@ claude plugin install <plugin-name>@tal-marketplace
 
 Each plugin has its own README with the full feature/command/skill inventory — follow the links for details.
 
-- **[tal](./plugins/tal/README.md)** — personal helpers for simple visual explanations, reference-clarity rewrites, session-focus guardrails, git workflows, PR feedback, App Store Connect tooling, and Plex stand-up artwork.
+- **[tal](./plugins/tal/README.md)** — personal helpers for simple visual explanations, reference-clarity rewrites, session-focus guardrails, git workflows, PR feedback, release deploys (`/deploy`, TestFlight first), App Store Connect tooling, and Plex stand-up artwork.
 - **[smart-notifications](./plugins/smart-notifications/README.md)** — macOS desktop notifications for agent events (Stop, SubagentStop, Notification) with terminal activation support.
 - **[plan-refiner](./plugins/plan-refiner/README.md)** — refine plans and specs through in-depth interviews driven by strategic questioning.
 - **[karabiner](./plugins/karabiner/README.md)** — skills for configuring and writing Karabiner-Elements rules on macOS.

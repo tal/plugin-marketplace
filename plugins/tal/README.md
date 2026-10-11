@@ -1,6 +1,6 @@
 # tal
 
-Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, session-focus guardrails, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), partial-file staging, and Plex stand-up poster sourcing and installation.
+Tal's personal common-helpers plugin — a grab-bag of workflow utilities that ship together because they all show up in the same day-to-day routine. Currently covers simple visual explanations, reference-clarity rewrites, session-focus guardrails, git commits (atomic, quick, and staged-only), GitHub PR feedback (fetching review threads, replying inline), release deploys (`/deploy`, TestFlight first), App Store Connect tooling (`xcrun altool` and ASC REST API patterns), partial-file staging, and Plex stand-up poster sourcing and installation.
 
 ## Install
 
@@ -42,6 +42,10 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 
 - `/tal:pr:address-feedback` — Fetch unresolved, non-outdated review threads on a PR and walk through addressing each one. Auto-detects the PR from the current branch, or accepts `[pr-number | pr-url | comment-url]`. Delegates fetching to the `get-pr-feedback` skill (falling back to its script directly if the skill doesn't auto-activate), builds a TodoWrite plan, and edits files thread-by-thread.
 
+### Deploy
+
+- `/tal:deploy [target | pipeline | target:channel] [channel] [--dirty]` (also `/deploy` when nothing else claims the name; `$deploy` in Codex) — the slash form of the `deploy` skill below. `/deploy testflight internal` ships to that target and channel. With no target, it asks which one (or uses the only configured target). With no channel, it asks (or uses the only one).
+
 ### Handoff
 
 - `/tal:handoff` (also reachable as `/handoff` when there's no namespace conflict) — Invoke the `handoff` skill to compact the current conversation into a handoff document at a `mktemp -t handoff-XXXXXX.md` path. Optional argument: a one-liner describing the next session's focus. The skill is marked `disable-model-invocation: true`, so it never fires on its own — this command is the only way in.
@@ -50,6 +54,7 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 
 - **`unambiguous`** — Automatically applies when the user asks to clarify a document or passage, eliminate ambiguity, fix unclear pronouns, demonstratives, or antecedents, or disambiguate a sentence. It keeps already-clear references, makes the smallest necessary edits, reports material grammatical ambiguities, and avoids broader copyediting.
 - **`stay-on-track`** — Fires when the user says "stay on track," "don't go off track," "stick to the plan," or otherwise asks to require confirmation before deviating from the session's goal. Pins down the stated or inferred goal in one sentence, then for the rest of the conversation stops and asks before starting unrequested work, broadening scope, switching approach, or touching unrelated files — but doesn't gate on in-scope decisions or on work the user directly asks for afterward.
+- **`deploy`** — Generic release plumbing driven by a per-repo `.config/deploy.yml`. Every top-level block in that file is a target (`testflight:`, `supabase:`, …) with its own `channels`. Order: show a resolved plan and wait for a yes → clean-tree / branch / unpushed check → isolated version-bump commit → preflight, ship and verify per `targets/<target>.md` → immutable annotated tag `builds/<target>/<channel>/<version>` → release changelog with What's New since that channel's last tag. Dirty trees deploy only with `--dirty` (or saying so), and then get no bump commit and no tag, only an UNTAGGED changelog entry. Named `pipelines:` run several targets in order and stop at the first failure. An unconfigured target gets a best-effort run, then an offer to save it as a new target file. Ships `targets/testflight.md` (archive → export → release gate → `altool --upload-package` → What's New via `betaBuildLocalizations` → beta-review submit → external group attach, plus promotion of an internal build to external and the CLI release landmines). Deterministic steps are scripts in `skills/deploy/scripts/`: `verify-clean-tree.sh`, `build-id.sh` (version schemes plus the dotted-tuple ordering guard), `release-commit.sh`, `since-last-tag.sh` (handles tags orphaned by rewritten history) and `tag.sh` (refuses dirty trees and existing tags).
 - **`get-pr-feedback`** — Fires when the user mentions PR feedback, review comments, "what did reviewers say", or pastes a `#discussion_r…` URL. Wraps `gh api` (GraphQL) in `skills/get-pr-feedback/get-pr-comments.sh` to return review threads as structured JSON with accurate resolved/outdated status — something `gh pr view` can't surface. Supports `-a` (actionable only), `-f` (include `diff_hunk`), `-o` (oldest-first), `-v` (verbose). Auto-spills to `/tmp/pr-comments-…json` when output exceeds 25 KB so large PRs don't get truncated by the Bash tool's 30 KB cap.
 - **`pr-thread-reply`** — Fires when the user asks to reply to an inline PR review comment or pastes a comment URL with a reply message. Native `gh pr comment` only posts top-level PR comments; this skill posts threaded replies to inline review comments via `gh api` (`skills/pr-thread-reply/reply-pr-thread.sh`). Accepts a comment URL plus message, or `--comment-id` / `--pr` / `--repo` flags, or runs interactively. Marked `disable-model-invocation: true` — invoke it deliberately, not automatically.
 - **`appstore-connect`** — Fires for App Store Connect, `altool`, TestFlight uploads, IPA validation, ASC REST API, JWT generation, asset pack management, etc. Reference-only (no scripts) — covers `xcrun altool` authentication (API key vs. password), the full command table (`--upload-package`, `--validate-app`, `--build-status`, `--list-apps`, `--list-providers`, `--generate-jwt`, `--app-store-text`, asset-pack commands), and ASC REST API workarounds for endpoints altool doesn't expose (TestFlight builds, beta groups, review status). Detailed reference files in `skills/appstore-connect/references/`.
@@ -65,6 +70,7 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 - **`jq`** — required by `get-pr-feedback` and `pr-thread-reply` for JSON parsing.
 - **`git`** — required by `git-partial-commit` and the commit commands.
 - **`xcrun altool`** (Xcode command line tools) — required by the `appstore-connect` skill. An ASC API key (`AuthKey_<KEY_ID>.p8`) in one of altool's search paths or referenced via `$API_PRIVATE_KEYS_DIR` / `--p8-file-path` is needed for most subcommands.
+- **`git`, `jq`, `curl`, `xcodebuild` / `xcrun altool`** — required by `deploy` (the last two only for the `testflight` target). The TestFlight target needs an ASC API key; by default it looks in `~/.config/appstoreconnect/private_keys` and exports `API_PRIVATE_KEYS_DIR` itself.
 - **`curl`** — used in the ASC REST API examples for endpoints altool doesn't expose.
 - **`ssh`, `curl`, `jq`, and ImageMagick's `magick`** — required by `plex-standup-posters`. The personal defaults expect SSH host `synfeld`, media under `/volume1/Media/Standup`, and `PLEX_URL` / `PLEX_TOKEN` in `/Users/tal/Projects/darr-manager/.env`; each default has an environment-variable override.
 
@@ -79,6 +85,9 @@ Skills assume the following tools are on `PATH` and authenticated where applicab
 - `skills/get-pr-feedback/get-pr-comments.sh` — The GraphQL-backed comment-fetching script. Worth reading if you want to consume the JSON output programmatically (or pipe through `jq` filters).
 - `skills/pr-thread-reply/reply-pr-thread.sh` — REST-API-based inline-reply poster, with URL parsing and comment-ID extraction.
 - `skills/git/partial-commit/stage-lines.sh` — `git apply --cached` wrapper used by `/tal:git:commit:atomic` for splitting mixed-feature files.
+- `skills/deploy/SKILL.md` — Deploy plumbing: argument grammar, `deploy.yml` generic keys and defaults, the order of operations, dirty / promotion / pipeline / best-effort runs, and the release changelog template.
+- `skills/deploy/targets/testflight.md` — The TestFlight target: required keys, version bump, preflight, ship, verify, rollback and landmines.
+- `skills/deploy/scripts/` — `verify-clean-tree.sh`, `build-id.sh`, `release-commit.sh`, `since-last-tag.sh`, `tag.sh`.
 - `skills/appstore-connect/references/commands.md` — Complete `xcrun altool` command reference: every flag, every parameter, every command.
 - `skills/appstore-connect/references/rest-api-workarounds.md` — JWT-plus-curl recipes for TestFlight builds, beta groups, and other ASC REST API endpoints altool can't reach. Notes the URL-encoded bracket gotcha (`%5B` / `%5D`) for filter parameters.
 - `skills/plex-standup-posters/SKILL.md` — End-to-end sourcing, generation, normalization, installation, and verification policy for new YouTube comedy-special artwork in the Plex Standup library.
@@ -105,6 +114,9 @@ plugins/tal/
     stay-on-track/             Session-focus guardrails, auto-fires on "stay on track"
     get-pr-feedback/            PR review-thread fetcher
     pr-thread-reply/            Inline-comment reply poster
+    deploy/                     /deploy release plumbing
+      targets/                  One file per destination (testflight.md)
+      scripts/                  Clean-tree, build id, bump commit, What's New range, tag
     appstore-connect/           xcrun altool + ASC REST API reference
       references/
     git/partial-commit/         Stage exact lines/hunks via git apply --cached

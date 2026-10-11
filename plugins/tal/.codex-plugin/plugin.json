@@ -1,6 +1,6 @@
 {
   "name": "tal",
-  "description": "Tal's personal helpers for git and PR workflows, App Store Connect, and Plex stand-up artwork.",
+  "description": "Tal's personal helpers for git and PR workflows, deploys, App Store Connect, and Plex stand-up artwork.",
   "author": {
     "name": "Tal Atlas",
     "email": "me@tal.by",
@@ -16,13 +16,16 @@
     "ci",
     "workflow",
     "plex",
-    "media"
+    "media",
+    "deploy",
+    "release",
+    "testflight"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Tal",
     "shortDescription": "Personal helpers for development and media workflows.",
-    "longDescription": "Reusable workflows for commits, PR feedback, App Store Connect, partial staging, and sourcing and installing Plex stand-up posters.",
+    "longDescription": "Reusable workflows for commits, PR feedback, deploys, App Store Connect, partial staging, and sourcing and installing Plex stand-up posters.",
     "developerName": "Tal Atlas",
     "category": "Developer Tools",
     "capabilities": [
