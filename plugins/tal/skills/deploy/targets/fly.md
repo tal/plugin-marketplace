@@ -22,6 +22,7 @@ Optional:
 | Key | Default | Notes |
 |---|---|---|
 | `config` | `fly.toml` | Path to the Fly config. Can differ per channel |
+| `working_dir` | `.` (repo root) | Repo-relative build context, passed as `fly deploy <working_dir>`. Set it when the Dockerfile isn't at the root (monorepos). Can differ per channel |
 | `build` | `remote` | `remote` (Fly builders, `--remote-only`) / `local` (`--local-only`, needs Docker) |
 | `strategy` | from `fly.toml` | `rolling` / `immediate` / `canary` / `bluegreen` |
 | `wait_timeout` | `5m` | Passed to `--wait-timeout` |
@@ -49,6 +50,7 @@ Used by config mode (SKILL.md §11) to fill the block. All read-only.
 | `config` | `ls fly.toml fly.*.toml`. Leave the key out when it's the default `fly.toml`. Per-channel files (`fly.staging.toml`) go on the channel |
 | `app` (per channel) | `app = …` in each config, plus the `Name` of each entry in `fly apps list --json`. Suggest channel names from the app names (`myapp-staging` → `staging`, `myapp` → `prod`), and confirm the order, since it's the promotion order |
 | `health_url` | A `[[http_service.checks]]` / `[[services.http_checks]]` `path` in the config, on `https://<app>.fly.dev`. Ask before adding it: it must be publicly reachable |
+| `working_dir` | The directory holding the `Dockerfile` (or the `[build]` source) that `config` builds. Leave it out when that's the repo root. In a monorepo it's usually the config's directory |
 | `build` | `remote` (the default, so leave it out) unless the user wants local Docker builds |
 | `token_env` | Leave out (logged-in session). For CI-style deploy tokens, ask for the env var **name** only |
 
@@ -66,7 +68,11 @@ Used by `/deploy doctor` (SKILL.md §12). Read-only.
 4. **Promotion path:** `fly apps list --json` → each channel app's
    `Organization.Slug`. Apps in different orgs → ⚠️: promotion can't re-use
    the image, so every channel builds fresh.
-5. **Builds:** `build: local` needs `docker info` to succeed.
+5. **Builds:** `build: local` needs `docker info` to succeed. `working_dir`
+   exists, and holds the Dockerfile the config builds (`[build] dockerfile`,
+   else `Dockerfile`) unless `[build]` names an `image` or a builder. Missing → ❌.
+   A Dockerfile only next to a `config` outside `working_dir` → ⚠️ with "set
+   `working_dir`": flyctl's help doesn't promise that `-c` moves the build context.
 6. **Health:** each `health_url` returns 2xx right now. Failing → ⚠️: it might
    be down, or the URL is wrong.
 7. **History:** the newest `builds/fly/<channel>/*` tag per channel, and
@@ -100,10 +106,11 @@ name the same commit. Dirty runs work the same way and still change nothing.
 New build (gate `deploy`):
 
 ```bash
-fly deploy -a <app> -c <config> --remote-only \
+fly deploy <working_dir> -a <app> -c <config> --remote-only \
   --image-label <version> --wait-timeout <wait_timeout> [--strategy <strategy>]
 ```
 
+Run it from the repo root: `working_dir` and `config` are both repo-relative.
 Use `--local-only` in place of `--remote-only` when `build: local`. Then record the artifact:
 
 ```bash
@@ -149,6 +156,10 @@ rollback in a changelog entry. The bad deploy's tag stays.
 
 ## Notes / landmines
 
+- The build context is `fly deploy`'s `WORKING_DIRECTORY` argument. flyctl's
+  help doesn't say whether `-c <config>` changes it, so pass it explicitly: a
+  `coach/fly.toml` with `coach/Dockerfile` gets `working_dir: coach`.
+  Promotions and rollbacks deploy an `--image` and don't build, so they ignore it.
 - `-a <app>` wins over `app = …` in `fly.toml`. Always pass it, so a staging
   config can never deploy to prod by accident.
 - `--remote-only` needs no local Docker. A `--local-only` build pushes the image
