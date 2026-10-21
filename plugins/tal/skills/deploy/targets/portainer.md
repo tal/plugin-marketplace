@@ -136,13 +136,22 @@ curl $K -fsS -X PUT -H "Authorization: Bearer $JWT" -H 'Content-Type: applicatio
   | jq '{Id, Status, ConfigHash: .GitConfig.ConfigHash, UpdateDate}'
 ```
 
-The call blocks until compose finishes (including the image build), so give it
-a long timeout (10 min). A non-2xx response body has Portainer's `message` /
-`details`; put them in the changelog.
+The call can take minutes (it clones and may build), so give it a long timeout
+(10 min). A 200 does **not** mean compose has finished: the response can come
+back with `Status: 3` and the new `ConfigHash` while the old containers are
+still up. Verify waits for that. A non-2xx response body has Portainer's
+`message` / `details`; put them in the changelog.
 
 ## Verify
 
 - The redeploy response's `GitConfig.ConfigHash` equals the deployed commit.
+- **Wait for compose before checking anything else.** Poll every 10 s, up to
+  `watch_timeout`, until `GET /api/stacks/<stack_id>` has `Status: 1` and, for
+  a stack with `build:` services, the Preflight 5 query shows container ids
+  that aren't in the baseline. Checking
+  right after the PUT sees the old containers and gives a false **not
+  rebuilt**. Timing out with only baseline ids → fall through to the
+  image-id check below.
 - Containers (Preflight 5 query): every container is `running`, and at least
   one has a different `ImageID` than the baseline for a stack with `build:`
   services. Same image ids → **FAILED: not rebuilt** (Portainer reused the
@@ -173,6 +182,10 @@ Record the rollback in a changelog entry. The bad deploy's tag stays.
   (`composeFile`, not `composeFilePathInRepository`); redeploy is
   `PUT /api/stacks/<id>/git/redeploy?endpointId=<id>`. The old
   `/api/stacks?method=repository` returns 405.
+- The redeploy PUT returned 200 with `Status: 3` before compose had finished,
+  in two career-dash releases in a row (2026-10-18 and 2026-10-21). The stack
+  went to `Status: 1` once the rebuilt containers were up. `3` meaning
+  "deploying" is from watching it happen, not from Portainer's docs.
 - The redeploy `env` **replaces** the stack's env. Omitting it wipes secrets
   like `GIT_TOKEN`. Always send `.Env` from a fresh GET.
 - `pullImage: true` upgrades every floating tag in the stack, not just yours.
