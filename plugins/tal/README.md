@@ -52,10 +52,6 @@ All three commit commands set `context: fork` **plus** `background: false`. A fo
 
 - `/tal:init [remove]` (`$init` in Codex) — the slash form of the `init` skill below. Detects which tal commands fit the current project and writes a managed block into its `AGENTS.md` telling agents which command to suggest for which request. Use `/tal:init`, not `/init`, which is Claude Code's built-in.
 
-### Handoff
-
-- `/tal:handoff` (also reachable as `/handoff` when there's no namespace conflict) — Invoke the `handoff` skill to compact the current conversation into a handoff document at a `mktemp -t handoff-XXXXXX.md` path. Optional argument: a one-liner describing the next session's focus. The skill is marked `disable-model-invocation: true`, so it never fires on its own — this command is the only way in.
-
 ## Skills
 
 - **`unambiguous`** — Automatically applies when the user asks to clarify a document or passage, eliminate ambiguity, fix unclear pronouns, demonstratives, or antecedents, or disambiguate a sentence. It keeps already-clear references, makes the smallest necessary edits, reports material grammatical ambiguities, and avoids broader copyediting.
